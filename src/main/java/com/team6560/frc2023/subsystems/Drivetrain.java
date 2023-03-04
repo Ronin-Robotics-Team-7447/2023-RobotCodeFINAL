@@ -11,9 +11,11 @@ import java.util.function.Supplier;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
+import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
+import com.swervedrivespecialties.swervelib.MechanicalConfiguration;
 import com.swervedrivespecialties.swervelib.MkModuleConfiguration;
 import com.swervedrivespecialties.swervelib.MkSwerveModuleBuilder;
 import com.swervedrivespecialties.swervelib.MotorType;
@@ -28,6 +30,7 @@ import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 // import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -57,8 +60,6 @@ public class Drivetrain extends SubsystemBase {
          * useful during initial testing of the robot.
          */
         public static final double MAX_VOLTAGE = 12.0;
-
-        private final WPI_Pigeon2 pigeon = new WPI_Pigeon2(GYRO_ID);
 
         private final SwerveModule m_frontLeftModule;
         private final SwerveModule m_frontRightModule;
@@ -90,19 +91,14 @@ public class Drivetrain extends SubsystemBase {
 
         private boolean overrideMaxVisionPoseCorrection;
 
-        private final CANSparkMax climbExtensionMotorLeft;
+        private boolean autoLock;
 
-        private final CANSparkMax climbExtensionMotorRight;
+        private ChassisSpeeds currentManualSetChassisSpeeds;
 
-        private final Solenoid batteryBullshit;
-
-        private final CANSparkMax climbDriveMotorLeft;
-
-        private CANSparkMax climbDriveMotorRight;
-
-        private CANSparkMax[] climbDriveMotors;
+        private final AHRS navX = new AHRS();
 
         public Drivetrain(Supplier<Pair<Pose2d, Double>> poseSupplier) {
+                MechanicalConfiguration mech = new MechanicalConfiguration(0.1016,1/7.13, false, 1/13.71, false);
                 this.poseSupplier = poseSupplier;
 
                 ShuffleboardTab tab = Shuffleboard.getTab("Drivetrain");
@@ -115,8 +111,8 @@ public class Drivetrain extends SubsystemBase {
                                 .withLayout(tab.getLayout("Front Left Module", BuiltInLayouts.kList)
                                                 .withSize(2, 4)
                                                 .withPosition(0, 0))
-                                .withGearRatio(SdsModuleConfigurations.MK4I_L2)
-                                .withDriveMotor(MotorType.FALCON, FRONT_LEFT_MODULE_DRIVE_MOTOR)
+                                .withGearRatio(mech)
+                                .withDriveMotor(MotorType.NEO, FRONT_LEFT_MODULE_DRIVE_MOTOR)
                                 .withSteerMotor(MotorType.NEO, FRONT_LEFT_MODULE_STEER_MOTOR)
                                 .withSteerEncoderPort(FRONT_LEFT_MODULE_STEER_ENCODER)
                                 .withSteerOffset(FRONT_LEFT_MODULE_STEER_OFFSET)
@@ -126,8 +122,8 @@ public class Drivetrain extends SubsystemBase {
                                 .withLayout(tab.getLayout("Front Right Module", BuiltInLayouts.kList)
                                                 .withSize(2, 4)
                                                 .withPosition(2, 0))
-                                .withGearRatio(SdsModuleConfigurations.MK4I_L2)
-                                .withDriveMotor(MotorType.FALCON, FRONT_RIGHT_MODULE_DRIVE_MOTOR)
+                                .withGearRatio(mech)
+                                .withDriveMotor(MotorType.NEO, FRONT_RIGHT_MODULE_DRIVE_MOTOR)
                                 .withSteerMotor(MotorType.NEO, FRONT_RIGHT_MODULE_STEER_MOTOR)
                                 .withSteerEncoderPort(FRONT_RIGHT_MODULE_STEER_ENCODER)
                                 .withSteerOffset(FRONT_RIGHT_MODULE_STEER_OFFSET)
@@ -137,8 +133,8 @@ public class Drivetrain extends SubsystemBase {
                                 .withLayout(tab.getLayout("Back Left Module", BuiltInLayouts.kList)
                                                 .withSize(2, 4)
                                                 .withPosition(4, 0))
-                                .withGearRatio(SdsModuleConfigurations.MK4I_L2)
-                                .withDriveMotor(MotorType.FALCON, BACK_LEFT_MODULE_DRIVE_MOTOR)
+                                .withGearRatio(mech)
+                                .withDriveMotor(MotorType.NEO, BACK_LEFT_MODULE_DRIVE_MOTOR)
                                 .withSteerMotor(MotorType.NEO, BACK_LEFT_MODULE_STEER_MOTOR)
                                 .withSteerEncoderPort(BACK_LEFT_MODULE_STEER_ENCODER)
                                 .withSteerOffset(BACK_LEFT_MODULE_STEER_OFFSET)
@@ -148,8 +144,8 @@ public class Drivetrain extends SubsystemBase {
                                 .withLayout(tab.getLayout("Back Right Module", BuiltInLayouts.kList)
                                                 .withSize(2, 4)
                                                 .withPosition(6, 0))
-                                .withGearRatio(SdsModuleConfigurations.MK4I_L2)
-                                .withDriveMotor(MotorType.FALCON, BACK_RIGHT_MODULE_DRIVE_MOTOR)
+                                .withGearRatio(mech)
+                                .withDriveMotor(MotorType.NEO, BACK_RIGHT_MODULE_DRIVE_MOTOR)
                                 .withSteerMotor(MotorType.NEO, BACK_RIGHT_MODULE_STEER_MOTOR)
                                 .withSteerEncoderPort(BACK_RIGHT_MODULE_STEER_ENCODER)
                                 .withSteerOffset(BACK_RIGHT_MODULE_STEER_OFFSET)
@@ -163,22 +159,12 @@ public class Drivetrain extends SubsystemBase {
                                 new MatBuilder<N3, N1>(Nat.N3(), Nat.N1()).fill(0.1, 0.1, 0.1), // State measurement
                                                                                                 // standard deviations.
                                                                                                 // X, Y, theta.
-                                new MatBuilder<N3, N1>(Nat.N3(), Nat.N1()).fill(1.25, 1.25, 1.25)); // Vision
+                                new MatBuilder<N3, N1>(Nat.N3(), Nat.N1()).fill(1.75, 1.75, 1.75)); // Vision
                                                                                                     // measurement
                                                                                                     // standard
                                                                                                     // deviations.
                                                                                                     // X, Y, theta.
 
-                climbExtensionMotorLeft = new CANSparkMax(22, CANSparkMaxLowLevel.MotorType.kBrushless);
-                climbExtensionMotorLeft.setInverted(true);
-
-                climbExtensionMotorRight = new CANSparkMax(24, CANSparkMaxLowLevel.MotorType.kBrushless);
-                climbExtensionMotorRight.setInverted(true);
-
-                climbDriveMotorLeft = new CANSparkMax(23, CANSparkMaxLowLevel.MotorType.kBrushless);
-                climbDriveMotorRight = new CANSparkMax(21, CANSparkMaxLowLevel.MotorType.kBrushless);
-
-                climbDriveMotors = new CANSparkMax[] {climbDriveMotorLeft, climbDriveMotorRight};
                 // for (CANSparkMax i : new CANSparkMax[] {climbExtensionMotorLeft,
                 //                 climbExtensionMotorRight }) {
                 //         i.getPIDController().setP(0.005);
@@ -189,69 +175,13 @@ public class Drivetrain extends SubsystemBase {
                 // }
 
                 
-                for (CANSparkMax i : climbDriveMotors) {
-                        i.restoreFactoryDefaults();
-                        i.getPIDController().setFF(0.001);
-                        i.getPIDController().setP(0.0);
-                        i.getPIDController().setI(0.0);
-                        i.getPIDController().setD(0.0);
-
-                        i.getPIDController().setIZone(0.0);
-                }
-                
-                climbDriveMotorLeft.setInverted(false);
-                climbDriveMotorRight.setInverted(true);
-
-                batteryBullshit = new Solenoid(PneumaticsModuleType.CTREPCM, 1); //TODO: CHANGE
-
                 resetOdometry(new Pose2d());
 
                 SmartDashboard.putData("Field", field);
 
-                NtValueDisplay.ntDispTab("Climb")
-                                .add("isClimbExtended", () -> isClimbExtended())
-                                .add("leftClimbPosition", () -> getLeftClimbPosition())
-                                .add("rightClimbPosition", () -> getRightClimbPosition())
-                                .add("climbMotorVelocityRPM", () -> getClimbDriveMotorVelocityRPM())
-                                .add("batteryBullshitExtended", () -> isBatteryBullshitExtended());
         }
 
-        public boolean isClimbExtended() {
-                return Math.abs(climbExtensionMotorLeft.getEncoder().getPosition()) > 0.0;
-        }
 
-        public double getLeftClimbPosition() {
-                return climbExtensionMotorLeft.getEncoder().getPosition();
-        }
-
-        public double getRightClimbPosition() {
-                return climbExtensionMotorRight.getEncoder().getPosition();
-        }
-
-        public void setLeftClimbExtensionVelocity(double velocityPercentOutput) {
-                climbExtensionMotorLeft.set(velocityPercentOutput);
-        }
-
-        public void setRightClimbExtensionVelocity(double velocityPercentOutput) {
-                climbExtensionMotorRight.set(velocityPercentOutput);
-        }
-
-        public void setClimbDriveMotorVelocity(double velocityRPM) {
-                for (CANSparkMax i : climbDriveMotors)
-                        i.getPIDController().setReference(velocityRPM, ControlType.kVelocity);
-        }
-
-        public double getClimbDriveMotorVelocityRPM() {
-                return climbDriveMotorLeft.getEncoder().getVelocity();
-        }
-
-        public void setBatteryBullshit(boolean isClimbing) {
-                batteryBullshit.set(isClimbing);
-        }
-
-        public boolean isBatteryBullshitExtended() {
-                return batteryBullshit.get();
-        }
 
         public double getAverageModuleDriveAngularTangentialSpeed() {
                 double sum = 0;
@@ -276,7 +206,7 @@ public class Drivetrain extends SubsystemBase {
         }
 
         public Rotation2d getRawGyroRotation() {
-                return Rotation2d.fromDegrees(pigeon.getYaw());
+            return new Rotation2d(navX.getYaw() * -1 / 180 * Math.PI);
         }
 
         /**
@@ -340,11 +270,13 @@ public class Drivetrain extends SubsystemBase {
         }
 
         public Rotation2d getPitch() {
-                return Rotation2d.fromDegrees(pigeon.getPitch());
+                return new Rotation2d(navX.getPitch() * -1 / 180 * Math.PI);
+                // return Rotation2d.fromDegrees(navX.getPitch());
         }
 
         public Rotation2d getRoll() {
-                return Rotation2d.fromDegrees(pigeon.getRoll());
+                return new Rotation2d(navX.getRoll() * -1 / 180 * Math.PI);
+                // return Rotation2d.fromDegrees(navX.getRoll());
         }
 
         /**
@@ -374,11 +306,21 @@ public class Drivetrain extends SubsystemBase {
          *                      rotational speed
          */
         public void drive(ChassisSpeeds chassisSpeeds) {
-                if (driveNoX(chassisSpeeds))
-                        setChassisState(DEFAULT_MODULE_STATES);
+                /*if (driveNoX(chassisSpeeds))
+                        setChassisState(DEFAULT_MODULE_STATES);*/
+
+                if (driveNoX(chassisSpeeds)) {
+                                SwerveModuleState[] speeds = m_kinematics.toSwerveModuleStates(currentManualSetChassisSpeeds);
+                                SwerveDriveKinematics.desaturateWheelSpeeds(speeds, 0.0);
+                                setChassisState(speeds);
+        
+                }
         }
 
         public boolean driveNoX(ChassisSpeeds chassisSpeeds) {
+                this.currentManualSetChassisSpeeds = chassisSpeeds;
+                if (this.autoLock)
+                        return false;
                 SwerveModuleState[] states = Constants.m_kinematics.toSwerveModuleStates(chassisSpeeds);
                 SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_VELOCITY_METERS_PER_SECOND);
 
@@ -386,11 +328,6 @@ public class Drivetrain extends SubsystemBase {
                         setChassisState(states);
                         return false;
                 }
-
-                // chassisSpeeds = new
-                // ChassisSpeeds(xLimiter.calculate(chassisSpeeds.vxMetersPerSecond),
-                // yLimiter.calculate(chassisSpeeds.vyMetersPerSecond),
-                // rotLimiter.calculate(chassisSpeeds.omegaRadiansPerSecond));
 
                 for (SwerveModuleState state : states) {
                         if (state.speedMetersPerSecond > 0.05) {
@@ -519,11 +456,29 @@ public class Drivetrain extends SubsystemBase {
                         return;
 
                 Pose2d camPose = result.getFirst();
-
+                
+                if (camPose == null || camPose == new Pose2d())
+                        return;
+                
                 if (camPose.minus(getPose()).getTranslation().getNorm() > 1.5 && !overrideMaxVisionPoseCorrection)
                         return;
 
+                if (!overrideMaxVisionPoseCorrection) {
+                        // TODO: test this line of code and see if it's stupid or not
+                        camPose = new Pose2d(camPose.getTranslation(), getGyroscopeRotation());
+                }
+
                 double camPoseObsTime = result.getSecond();
                 poseEstimator.addVisionMeasurement(camPose, camPoseObsTime);
+        }
+
+        public void teleopFinesseChassisState(SwerveModuleState[] state) {
+                ChassisSpeeds speeds = Constants.m_kinematics.toChassisSpeeds(state);
+
+                setChassisState(Constants.m_kinematics.toSwerveModuleStates(new ChassisSpeeds(currentManualSetChassisSpeeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond)));
+        }
+
+        public void setAutoLock(boolean lock) {
+                this.autoLock = lock;
         }
 }

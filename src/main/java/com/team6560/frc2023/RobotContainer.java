@@ -35,9 +35,9 @@ public class RobotContainer {
 
         private final DriveCommand driveCommand;
 
-        private final Intake intake;
+        /*private final Intake intake;
 
-        private final Arm arm;
+        private final Arm arm;*/
 
         private final ManualControls manualControls = new ManualControls(new XboxController(0), new XboxController(1));
 
@@ -58,18 +58,17 @@ public class RobotContainer {
 
                 drivetrain = new Drivetrain(() -> limelight.getBotPose());
                 
-                arm = new Arm();
-                arm.setDefaultCommand(new ArmCommand(arm, manualControls));
+                // arm = new Arm();
+                // arm.setDefaultCommand(new ArmCommand(arm, manualControls));
 
-                autoBuilder = new AutoBuilder(drivetrain, arm);
+                autoBuilder = new AutoBuilder(drivetrain);
 
-                driveCommand = new DriveCommand(drivetrain, autoBuilder, manualControls);
+                driveCommand = new DriveCommand(drivetrain, autoBuilder, limelight, manualControls);
                 drivetrain.setDefaultCommand(driveCommand);
 
-
-                intake = new Intake();
-                intakeCommand = new IntakeCommand(intake, manualControls);
-                intake.setDefaultCommand(intakeCommand);
+                // intake = new Intake();
+                // intakeCommand = new IntakeCommand(intake, manualControls);
+                // intake.setDefaultCommand(intakeCommand);
 
 
                 autoChooser = new SendableChooser<String>();

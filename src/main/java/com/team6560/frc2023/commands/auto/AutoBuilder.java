@@ -66,29 +66,26 @@ public class AutoBuilder {
    */
   private Drivetrain drivetrain;
 
-  private Arm arm;
-
   /**
    * 
    * Constructor for AutoBuilder class. Initializes eventMap, autoBuilder, and drivetrain.
    * 
    * @param drivetrain An instance of Drivetrain that represents the drive ubsystem.
    */
-  public AutoBuilder(Drivetrain drivetrain, Arm arm) {
+  public AutoBuilder(Drivetrain drivetrain) {
     this.drivetrain = drivetrain;
-    this.arm=arm;
 
     eventMap = new HashMap<>();
     eventMap.put("printCommand", new PrintCommand("test Print command"));
     // eventMap.put("PLACE_CONE_HIGH", new RunCommand( () -> arm.setArmState(ArmPose.HIGH_CONE), arm).until( () -> arm.isArmAtSetpoint()));
-    eventMap.put("PLACE_CONE_HIGH", new MoveArmToPoseCommand(arm, ArmPose.HIGH_CONE));
-    eventMap.put("PLACE_CONE_MID", new MoveArmToPoseCommand(arm, ArmPose.MEDIUM_CONE));
-    eventMap.put("PLACE_LOW_CUBE", new MoveArmToPoseCommand(arm, ArmPose.LOW_CUBE));
-    eventMap.put("PLACE_LOW_CONE", new MoveArmToPoseCommand(arm, ArmPose.LOW_CONE));
-    eventMap.put("PLACE_CUBE_HIGH", new MoveArmToPoseCommand(arm, ArmPose.HIGH_CUBE));
-    eventMap.put("PLACE_CUBE_MID", new MoveArmToPoseCommand(arm, ArmPose.MEDIUM_CUBE));
-    eventMap.put("PICK_GROUND_CUBE", new MoveArmToPoseCommand(arm, ArmPose.GROUND_CUBE));
-    eventMap.put("PICK_GROUND_CONE", new MoveArmToPoseCommand(arm, ArmPose.GROUND_CONE));
+    // eventMap.put("PLACE_CONE_HIGH", new MoveArmToPoseCommand(arm, ArmPose.HIGH_CONE));
+    // eventMap.put("PLACE_CONE_MID", new MoveArmToPoseCommand(arm, ArmPose.MEDIUM_CONE));
+    // eventMap.put("PLACE_LOW_CUBE", new MoveArmToPoseCommand(arm, ArmPose.LOW_CUBE));
+    // eventMap.put("PLACE_LOW_CONE", new MoveArmToPoseCommand(arm, ArmPose.LOW_CONE));
+    // eventMap.put("PLACE_CUBE_HIGH", new MoveArmToPoseCommand(arm, ArmPose.HIGH_CUBE));
+    // eventMap.put("PLACE_CUBE_MID", new MoveArmToPoseCommand(arm, ArmPose.MEDIUM_CUBE));
+    // eventMap.put("PICK_GROUND_CUBE", new MoveArmToPoseCommand(arm, ArmPose.GROUND_CUBE));
+    // eventMap.put("PICK_GROUND_CONE", new MoveArmToPoseCommand(arm, ArmPose.GROUND_CONE));
 
 
 
@@ -127,24 +124,25 @@ public class AutoBuilder {
     // autoBuilder.stopEventGroup(new StopEvent(new ArrayList<>(), ExecutionBehavior.SEQUENTIAL, WaitBehavior.AFTER, 1.0));
 
 
-    return new SequentialCommandGroup(
-        new MoveArmToPoseCommand(this.arm, ArmPose.HIGH_CONE),
-        new MoveArmPistonCommand(this.arm, false),
-        new MoveArmToPoseCommand(this.arm, ArmPose.DEFAULT),
-        autoBuilder.fullAuto(pathGroup.get(0)),
-        new SequentialCommandGroup(
-          new MoveArmToPoseCommand(this.arm, ArmPose.GROUND_CONE),
-          new MoveArmPistonCommand(arm, false),
-          new MoveArmToPoseCommand(arm, ArmPose.DEFAULT)
-        )
-          .alongWith(autoBuilder.fullAuto(pathGroup.get(1))),
+    // return new SequentialCommandGroup(
+    //     new MoveArmToPoseCommand(this.arm, ArmPose.HIGH_CONE),
+    //     new MoveArmPistonCommand(this.arm, false),
+    //     new MoveArmToPoseCommand(this.arm, ArmPose.DEFAULT),
+    //     autoBuilder.fullAuto(pathGroup.get(0)),
+    //     new SequentialCommandGroup(
+    //       new MoveArmToPoseCommand(this.arm, ArmPose.GROUND_CONE),
+    //       new MoveArmPistonCommand(arm, false),
+    //       new MoveArmToPoseCommand(arm, ArmPose.DEFAULT)
+    //     )
+    //       .alongWith(autoBuilder.fullAuto(pathGroup.get(1))),
 
-        new SequentialCommandGroup(
-          autoBuilder.fullAuto(pathGroup.get(2)),
-          new MoveArmToPoseCommand(this.arm, ArmPose.HIGH_CUBE)//,
-          // new MoveArmPistonCommand(this.arm, false)
-        )
-      );
+    //     new SequentialCommandGroup(
+    //       autoBuilder.fullAuto(pathGroup.get(2)),
+    //       new MoveArmToPoseCommand(this.arm, ArmPose.HIGH_CUBE)//,
+    //       // new MoveArmPistonCommand(this.arm, false)
+    //     )
+    //   );
+    return autoBuilder.fullAuto(pathGroup);
 
   }
 

@@ -17,10 +17,11 @@ import static com.team6560.frc2023.utility.NetworkTable.NtValueDisplay.ntDispTab
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 
-public class ManualControls implements DriveCommand.Controls, Limelight.Controls, ArmCommand.Controls, IntakeCommand.Controls {
+public class ManualControls implements DriveCommand.Controls, Limelight.Controls {
   private XboxController xbox;
 
   private final PovNumberStepper speed;
@@ -35,6 +36,9 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
   private XboxController controlStation;
 
   private NetworkTable armTable;
+
+  private boolean prevclimbEngaged;
+  private boolean climbEngaged;
 
   /**
    * Creates a new `ManualControls` instance.
@@ -68,7 +72,7 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
     ntDispTab("Controls")
       .add("Y Joystick", this::driveY)
       .add("X Joystick", this::driveX)
-      .add("Rotation Joystick", this::driveRotation);
+      .add("Rotation Joystick", this::driveRotationX);
 
     
     limelightTable = NetworkTableInstance.getDefault().getTable("Limelight");
@@ -122,7 +126,7 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
    */
   @Override
   public double driveX() {
-    return modifyAxis(-xbox.getLeftY() * speed.get());
+    return modifyAxis(xbox.getLeftY() * speed.get());
   }
 
   /**
@@ -143,8 +147,13 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
    * @return the angular velocity of the robot
    */
   @Override
-  public double driveRotation() {
+  public double driveRotationX() {
     return modifyAxis(-xbox.getRightX() * turnSpeed.get());
+  }
+
+  @Override
+  public double driveRotationY() {
+    return modifyAxis(-xbox.getRightY() * turnSpeed.get());
   }
 
   /**
@@ -164,7 +173,7 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
   }
 
   @Override
-  public boolean GoToDoubleSubstation() {
+  public boolean autoAlign() {
     return xbox.getAButton();
   }
 
@@ -175,7 +184,13 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
 
   @Override
   public int getLimelightPipeline() {
-    return (int) limelightTable.getEntry("limelightPipeline").getInteger( (long) 0);
+    if (!DriverStation.isTeleop())
+      return 0;
+    else if (autoAlign()) {
+      return 1;
+    }
+    return 1;
+    // return (int) limelightTable.getEntry("limelightPipeline").getInteger( (long) 0);
   }
 
   @Override
@@ -184,43 +199,15 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
   }
 
   @Override
-  public boolean isIntakeDown() {
-    return false;
-    // return xbox.getLeftBumper();
-  }
-
-  @Override
-  public double intakeSpeed() {
-    return 0.0;
-    // return 0.5 * (controlStation.getRightBumper() ? 1.0 : 0.0 - xbox.getRightTriggerAxis());
-    // return intakeTable.getEntry("speed").getDouble(0.0);
-  }
-
-  @Override
-  public double moveIntakeSpeed() {
-    double out = 0.0;
-    out += xbox.getBButton() ? 0.35 : 0.0;
-    out -= xbox.getXButton() ? 0.35 : 0.0;
-    return out;
-  }
-  
-  public double armRotationOverride(){
-    return modifyAxis(controlStation.getLeftY());
-  }
-
-  @Override
-  public boolean armExtentionOverride(){
-    return controlStation.getLeftBumper();
-  }
-
-  @Override
-  public double runClaw(){
-    return (controlStation.getRightBumper() ? 1 : (xbox.getRightTriggerAxis() > 0.5 ? -1 : 0));
-  }
-
-  @Override
   public boolean driveIsClimbing() {
-    return this.climbTable.getEntry("isClimbing").getBoolean(false);
+    if (prevclimbEngaged != controlStation.getBackButton() && controlStation.getBackButton()){
+      climbEngaged = !climbEngaged;
+    }
+
+    prevclimbEngaged = controlStation.getBackButton();
+    
+    return climbEngaged;
+    // return this.climbTable.getEntry("isClimbing").getBoolean(false);
   }
 
   @Override
@@ -234,56 +221,10 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
     return this.climbTable.getEntry("climbVelocityR").getDouble(0.0);
   }
 
-  @Override
-  public ArmPose armState() {
-    // if (!controlStation.getRawButton(4) || !controlStation.getRawButton(1))
-    //   return ArmPose.ZERO;
-
-
-
-    // return xbox.getBButton() ? ArmPose.MEDIUM_CONE : ArmPose.ZERO;
-    
-    if (controlStation.getXButton())
-      return controlStation.getLeftTriggerAxis() > 0.5 ? ArmPose.MEDIUM_CUBE : ArmPose.MEDIUM_CONE;
-    
-    if (controlStation.getYButton())
-      return controlStation.getLeftTriggerAxis() > 0.5 ? ArmPose.HIGH_CUBE : ArmPose.HIGH_CONE;
-    
-    if (controlStation.getAButton())
-      return controlStation.getLeftTriggerAxis() > 0.5 ? ArmPose.GROUND_CUBE : ArmPose.GROUND_CONE;
-    
-    if (controlStation.getBButton())
-      return controlStation.getLeftTriggerAxis() > 0.5 ? ArmPose.HUMAN_PLAYER_CUBE : ArmPose.HUMAN_PLAYER_CONE;
-
-    // if (controlStation.getRightY() < -0.5)
-    //   return ArmPose.LOW;
-    
-    // if (controlStation.getStartButton())
-    //   return ArmPose.DEFAULT;
-
-    if (controlStation.getStartButton())
-      return controlStation.getLeftTriggerAxis() > 0.5 ? ArmPose.LOW_CUBE : ArmPose.LOW_CONE;
-    
-    return ArmPose.NONE;
-    
-  }
 
   @Override
-  public boolean isOverridingArm() {
-    // TODO Auto-generated method stub
-    return false;
+  public boolean driveIsAutoRotating() {
+    return xbox.getLeftTriggerAxis() > 0.5;
   }
-
-  @Override
-  public boolean resetArmZero() {
-    return armTable.getEntry("resetArmZero").getBoolean(false);
-  }
-
-  @Override
-  public boolean overrideArmSoftLimits() {
-    return armTable.getEntry("overrideSoftLimits").getBoolean(false);
-  }
-
-  
 
 }
