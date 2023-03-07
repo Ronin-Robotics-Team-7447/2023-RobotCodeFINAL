@@ -157,6 +157,34 @@ public final class Constants {
     public static final double lowerLimit = 0.0;
   }
 
+  public static final class WristConstants {
+    public static final int WristID = 0;
+    public static final int ClawID = 0;
+    public static final int WristEncoderID = 0;
+    public static final double wristSpeed = 0.1;
+    public static final double clawSpeed = 0.3;
+    public static final double upperLimit = 0.0;
+    public static final double lowerLimit = 0.0;
+  }
+
+  public static class ArmJoystickConstants {
+    public static final int buttonPOV0 = 0;
+    public static final int buttonPOV180 = 180;
+
+    public static final int button1 = 1;
+    public static final int button2 = 2;
+    public static final int button3 = 3;
+    public static final int button4 = 4;
+    public static final int button5 = 5;
+    public static final int button6 = 6;
+    public static final int button7 = 7;
+    public static final int button8 = 8;
+    public static final int button9 = 9;
+    public static final int button10 = 10;
+    public static final int button11 = 11;
+    public static final int button12 = 12;
+  }
+
   public static final class VisionConstants {
     public static final double LIMELIGHT_TO_ROBOT_X = -0.1966595;
     public static final int LIMELIGHT_TO_FLOOR_DISTANCE_METERS = 0;
