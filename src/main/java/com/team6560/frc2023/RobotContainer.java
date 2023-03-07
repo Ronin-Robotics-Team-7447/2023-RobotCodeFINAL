@@ -205,7 +205,7 @@ public class RobotContainer {
             
                 // RESERVED FOR PRESET POSITIONS OF ENTIRE ARM
                 // Right hand buttons
-                button3.onTrue(disableWristLimits).onFalse(enableWristLimits);
+                button3.toggleOnTrue(disableWristLimits).toggleOnFalse(enableWristLimits);
                 // button4.onTrue(null);
                 // button5.onTrue(null);
                 // button6.onTrue(null);

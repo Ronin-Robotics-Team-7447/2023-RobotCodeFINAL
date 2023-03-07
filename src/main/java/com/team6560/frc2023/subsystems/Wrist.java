@@ -73,7 +73,7 @@ public class Wrist extends SubsystemBase {
   public void setWristSpeed(double wristSpeed) {
     if( wristSpeed > 0.2 ) {
       if(wedonotwantogodownanymore) {
-        if( whatButtonPressed == 1 ) {
+        if( whatButtonPressed == -1 ) {
           m_wrist.set(Constants.WristConstants.wristSpeed);
         } else {
           m_wrist.set(0);
@@ -83,7 +83,7 @@ public class Wrist extends SubsystemBase {
       } 
     } else if( wristSpeed < -0.2 ) {
       if (wedonotwantogoupanymore) {
-        if( whatButtonPressed == -1 ) {
+        if( whatButtonPressed == 1 ) {
           m_wrist.set(-Constants.WristConstants.wristSpeed);
         } else {
           m_wrist.set(0);
@@ -120,5 +120,9 @@ public class Wrist extends SubsystemBase {
 
   public void stopClaw() {
     m_claw.stopMotor();
+  }
+
+  public void stopWrist() {
+    m_wrist.stopMotor();
   }
 }
