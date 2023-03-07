@@ -6,15 +6,14 @@ package com.team6560.frc2023.controls;
 
 import com.team6560.frc2023.Constants;
 import com.team6560.frc2023.Constants.*;
-import com.team6560.frc2023.subsystems.Arm.ArmPose;
 import com.team6560.frc2023.subsystems.Limelight;
 import com.team6560.frc2023.commands.DriveCommand;
 import com.team6560.frc2023.commands.IntakeCommand;
 import com.team6560.frc2023.utility.NumberStepper;
-import com.team6560.frc2023.commands.ArmCommand;
 import com.team6560.frc2023.utility.PovNumberStepper;
 import static com.team6560.frc2023.utility.NetworkTable.NtValueDisplay.ntDispTab;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -115,6 +114,10 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
     // Square the axis
     value = Math.copySign(value * value, value);
 
+    // // Slew Rate Limiter
+    // SlewRateLimiter limiter = new SlewRateLimiter(3);
+    // value = limiter.calculate(value);
+
     return value;
   }
 
@@ -137,7 +140,7 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
    */
   @Override
   public double driveY() {
-    return modifyAxis(-xbox.getLeftX() * speed.get());
+    return modifyAxis(xbox.getLeftX() * speed.get());
   }
 
   /**

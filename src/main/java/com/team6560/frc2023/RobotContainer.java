@@ -3,9 +3,6 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package com.team6560.frc2023;
-
-import com.team6560.frc2023.commands.ArmCommand;
-
 // import java.io.File;
 
 import com.team6560.frc2023.commands.DriveCommand;
@@ -16,7 +13,11 @@ import com.team6560.frc2023.subsystems.Arm;
 import com.team6560.frc2023.subsystems.Drivetrain;
 import com.team6560.frc2023.subsystems.Intake;
 import com.team6560.frc2023.subsystems.Limelight;
+import com.team6560.frc2023.subsystems.Telescope;
 
+import edu.wpi.first.cscore.CameraServerJNI.TelemetryKind;
+import edu.wpi.first.wpilibj.AddressableLED;
+import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Joystick;
 // import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.XboxController;
@@ -35,9 +36,11 @@ public class RobotContainer {
 
         private final DriveCommand driveCommand;
 
-        /*private final Intake intake;
+        //private final Intake intake;
 
-        private final Arm arm;*/
+        //private final Arm arm;
+
+        //private final Telescope telescope;
 
         private final ManualControls manualControls = new ManualControls(new XboxController(0), new XboxController(1));
 
@@ -49,6 +52,8 @@ public class RobotContainer {
 
         private IntakeCommand intakeCommand;
 
+        private  AddressableLED led;
+
 
         /**
          * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -58,8 +63,8 @@ public class RobotContainer {
 
                 drivetrain = new Drivetrain(() -> limelight.getBotPose());
                 
-                // arm = new Arm();
-                // arm.setDefaultCommand(new ArmCommand(arm, manualControls));
+                //telescope = new Telescope();
+                //arm = new Arm();
 
                 autoBuilder = new AutoBuilder(drivetrain);
 
@@ -95,6 +100,10 @@ public class RobotContainer {
 
                 // Put the chooser on the dashboard
                 Shuffleboard.getTab("Auto Choose").add(autoChooser);
+
+                led = new AddressableLED(3);
+
+                turnLightsOn();
         }
 
 
@@ -105,6 +114,17 @@ public class RobotContainer {
          */
         public Command getAutonomousCommand() {
                 return autoBuilder.getAutoCommand(autoChooser.getSelected());
+        }
+
+        public void turnLightsOn() {
+                AddressableLEDBuffer ledbuffer = new AddressableLEDBuffer(0);
+                led.setLength(ledbuffer.getLength());
+                for (var i = 0; i < ledbuffer.getLength(); i++) {
+                        // Sets the specified LED to the RGB values for red
+                        ledbuffer.setRGB(i, 50, 147, 168);
+                }
+                led.setData(ledbuffer);
+                led.start();
         }
 
 }

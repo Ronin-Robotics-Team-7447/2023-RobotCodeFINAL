@@ -319,6 +319,12 @@ public class Drivetrain extends SubsystemBase {
 
         public boolean driveNoX(ChassisSpeeds chassisSpeeds) {
                 this.currentManualSetChassisSpeeds = chassisSpeeds;
+
+                // SlewRateLimiter xLimiter = new SlewRateLimiter(0.5);
+                // SlewRateLimiter yLimiter = new SlewRateLimiter(0.5);
+                // SlewRateLimiter rotLimiter = new SlewRateLimiter(0.5);
+                // chassisSpeeds = new ChassisSpeeds(xLimiter.calculate(chassisSpeeds.vxMetersPerSecond), yLimiter.calculate(chassisSpeeds.vyMetersPerSecond), rotLimiter.calculate(chassisSpeeds.omegaRadiansPerSecond));
+
                 if (this.autoLock)
                         return false;
                 SwerveModuleState[] states = Constants.m_kinematics.toSwerveModuleStates(chassisSpeeds);

@@ -133,13 +133,29 @@ public final class Constants {
   public static final double BREAK_TO_ARM = 350;
   public static final double BREAK_MOTOR_MULTIPLIER = 1.0;
 
-public static final int INTAKE_EXTENSION_MOTOR_LEFT = 17;
+  public static final int INTAKE_EXTENSION_MOTOR_LEFT = 17;
 
-public static final int INTAKE_EXTENSION_MOTOR_RIGHT = 16;
+  public static final int INTAKE_EXTENSION_MOTOR_RIGHT = 16;
 
-public static final int INTAKE_ROTATION_MOTOR = 15;
+  public static final int INTAKE_ROTATION_MOTOR = 15;
 
+  public static final class TelescopeConstants {
+    public static final int logitechID = 1;
+    public static final int telescopeID = 16;
+    public static final int throttleAxis = 3;
+    public static final double telescopeSpeed = 0.3;
+    public static final int upperLimit = 10;
+    public static final int bottomLimit = 0;
+  }
 
+  public static final class ArmConstants {
+    public static final int ArmEncoderID = 0;
+    public static final int ArmID = 17;
+    public static final int gripYAxis = 1;
+    public static final double armSpeed = 0.3;
+    public static final double upperLimit = 0.0;
+    public static final double lowerLimit = 0.0;
+  }
 
   public static final class VisionConstants {
     public static final double LIMELIGHT_TO_ROBOT_X = -0.1966595;

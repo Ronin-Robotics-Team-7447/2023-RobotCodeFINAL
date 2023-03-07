@@ -20,7 +20,6 @@ import com.pathplanner.lib.auto.SwerveAutoBuilder;
 import com.team6560.frc2023.Constants;
 import com.team6560.frc2023.subsystems.Arm;
 import com.team6560.frc2023.subsystems.Drivetrain;
-import com.team6560.frc2023.subsystems.Arm.ArmPose;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
