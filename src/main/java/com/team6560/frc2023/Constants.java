@@ -123,22 +123,6 @@ public final class Constants {
       // Back right
       new Translation2d(-DRIVETRAIN_TRACKWIDTH_METERS / 2.0, -DRIVETRAIN_WHEELBASE_METERS / 2.0));
 
-  public static final int BREAK_ID = 25; // ARC motor
-  public static final int CLAW_MOTOR_LEFT_ID = 26;
-  public static final int CLAW_MOTOR_RIGHT_ID = 27;
-  public static final int EXTENTION_SOLENOID_ID = 0;
-
-  // public static final double ROTOR_TO_ARM = 38.1;
-
-  public static final double BREAK_TO_ARM = 350;
-  public static final double BREAK_MOTOR_MULTIPLIER = 1.0;
-
-  public static final int INTAKE_EXTENSION_MOTOR_LEFT = 17;
-
-  public static final int INTAKE_EXTENSION_MOTOR_RIGHT = 16;
-
-  public static final int INTAKE_ROTATION_MOTOR = 15;
-
   public static final class TelescopeConstants {
     public static final int logitechID = 1;
     public static final int telescopeID = 16;
@@ -164,7 +148,6 @@ public final class Constants {
 
   public static final class ControllerIds {
     public static final int FIRST_DRIVER_CONTROLLER = 0;
-    public static final int SECOND_DRIVER_CONTROL_STATION = 1;
     public static final int SECOND_DRIVER_CONTROLLER = 2;
 
     public static final int XBOX_L_JOY_X = 0;
@@ -183,20 +166,6 @@ public final class Constants {
     public static final int XBOX_X_BUTTON = 3;
     public static final int XBOX_B_BUTTON = 2;
     public static final int XBOX_A_BUTTON = 1;
-
-    
-
-    public static final int DRIVER_STATION_TOGGLE_1 = 2;
-    public static final int DRIVER_STATION_TOGGLE_2 = 5;
-    public static final int DRIVER_STATION_TOGGLE_3 = 6;
-    public static final int DRIVER_STATION_TOGGLE_4 = 9;
-
-    public static final int DRIVER_STATION_BUTTON_1 = 1;
-    public static final int DRIVER_STATION_BUTTON_2 = 4;
-    public static final int DRIVER_STATION_BUTTON_3 = 3;
-
-    public static final int DRIVER_STATION_X_AXIS = 0;
-    public static final int DRIVER_STATION_Y_AXIS = 1;
   }
 
   // public static class VisionConstants {

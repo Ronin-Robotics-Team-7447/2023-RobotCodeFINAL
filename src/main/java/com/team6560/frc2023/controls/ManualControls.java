@@ -8,7 +8,6 @@ import com.team6560.frc2023.Constants;
 import com.team6560.frc2023.Constants.*;
 import com.team6560.frc2023.subsystems.Limelight;
 import com.team6560.frc2023.commands.DriveCommand;
-import com.team6560.frc2023.commands.IntakeCommand;
 import com.team6560.frc2023.utility.NumberStepper;
 import com.team6560.frc2023.utility.PovNumberStepper;
 import static com.team6560.frc2023.utility.NetworkTable.NtValueDisplay.ntDispTab;

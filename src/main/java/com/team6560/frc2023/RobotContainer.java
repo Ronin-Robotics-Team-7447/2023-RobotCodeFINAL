@@ -6,12 +6,11 @@ package com.team6560.frc2023;
 // import java.io.File;
 
 import com.team6560.frc2023.commands.DriveCommand;
-import com.team6560.frc2023.commands.IntakeCommand;
 import com.team6560.frc2023.commands.auto.AutoBuilder;
 import com.team6560.frc2023.controls.ManualControls;
 import com.team6560.frc2023.subsystems.Arm;
 import com.team6560.frc2023.subsystems.Drivetrain;
-import com.team6560.frc2023.subsystems.Intake;
+import com.team6560.frc2023.subsystems.Lights;
 import com.team6560.frc2023.subsystems.Limelight;
 import com.team6560.frc2023.subsystems.Telescope;
 
@@ -50,9 +49,7 @@ public class RobotContainer {
 
         private final AutoBuilder autoBuilder;
 
-        private IntakeCommand intakeCommand;
-
-        private  AddressableLED led;
+        private Lights lights;
 
 
         /**
@@ -65,6 +62,8 @@ public class RobotContainer {
                 
                 //telescope = new Telescope();
                 //arm = new Arm();
+
+                lights = new Lights();
 
                 autoBuilder = new AutoBuilder(drivetrain);
 
@@ -100,10 +99,6 @@ public class RobotContainer {
 
                 // Put the chooser on the dashboard
                 Shuffleboard.getTab("Auto Choose").add(autoChooser);
-
-                led = new AddressableLED(3);
-
-                turnLightsOn();
         }
 
 
@@ -115,16 +110,4 @@ public class RobotContainer {
         public Command getAutonomousCommand() {
                 return autoBuilder.getAutoCommand(autoChooser.getSelected());
         }
-
-        public void turnLightsOn() {
-                AddressableLEDBuffer ledbuffer = new AddressableLEDBuffer(0);
-                led.setLength(ledbuffer.getLength());
-                for (var i = 0; i < ledbuffer.getLength(); i++) {
-                        // Sets the specified LED to the RGB values for red
-                        ledbuffer.setRGB(i, 50, 147, 168);
-                }
-                led.setData(ledbuffer);
-                led.start();
-        }
-
 }
