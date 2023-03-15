@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class Lights extends SubsystemBase {
     private AddressableLED led;
     private AddressableLEDBuffer ledbuffer;
+    String mode;
 
     public Lights() {
         led = new AddressableLED(0);
@@ -18,6 +19,7 @@ public class Lights extends SubsystemBase {
     }
 
     public void setLightsToDefault() {
+        mode = "default";
         ledbuffer.setRGB(0, 41, 202, 254 );
         ledbuffer.setRGB(1, 255, 255, 255 );
         ledbuffer.setRGB(2, 41, 202, 254 );
@@ -30,6 +32,7 @@ public class Lights extends SubsystemBase {
     }
 
     public void setLightsToCone() {
+        mode = "cone";
         for( int i = 0; i < ledbuffer.getLength(); i++ ) {
             ledbuffer.setRGB(i, 255, 255, 0);
         }
@@ -38,11 +41,16 @@ public class Lights extends SubsystemBase {
     }
 
     public void setLightsToCube() {
+        mode = "cube";
         for( int i = 0; i < ledbuffer.getLength(); i++ ) {
             ledbuffer.setRGB(i, 128, 0, 128);
         }
         led.setData(ledbuffer);
         led.start();
+    }
+
+    public String getMode() {
+        return mode;
     }
 
     public void setLights(int red, int green, int blue) {

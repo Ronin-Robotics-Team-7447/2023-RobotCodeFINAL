@@ -44,8 +44,8 @@ public class Telescope extends SubsystemBase {
 
         telescopeEncoder = new Encoder(2, 1);
         m_telescope = new TalonSRX(Constants.TelescopeConstants.telescopeID);
-        //m_telescope.configPeakCurrentLimit(1);
-        //m_telescope.configPeakCurrentDuration(0);
+        m_telescope.configPeakCurrentLimit(10);
+        m_telescope.configPeakCurrentDuration(0);
 
         m_telescope.configFactoryDefault(0);
         m_telescope.setInverted(false);
@@ -76,17 +76,41 @@ public class Telescope extends SubsystemBase {
     }
 
     public void moveTelescope(double telescopeSpeed) {
-        if(telescopeSpeed > 0.2) {
+        // if(telescopeSpeed == 1 ) {
+        //   if (wedonotwantogoupanymore) {
+        //     if( -armJoystick.getRawAxis(Constants.TelescopeConstants.throttleAxis) < 0.0 ) {
+        //       m_telescope.set(TalonSRXControlMode.PercentOutput, -Constants.TelescopeConstants.telescopeSpeed);
+        //     } else {
+        //       m_telescope.set(TalonSRXControlMode.PercentOutput,0);
+        //     }
+        //   } else {
+        //     m_telescope.set(TalonSRXControlMode.PercentOutput, Constants.TelescopeConstants.telescopeSpeed);
+        //   }
+        // } else if(telescopeSpeed == -1) {
+        //   if(wedonotwantogodownanymore) {
+        //     if( -armJoystick.getRawAxis(Constants.TelescopeConstants.throttleAxis) > 0.0 ) {
+        //       m_telescope.set(TalonSRXControlMode.PercentOutput, Constants.TelescopeConstants.telescopeSpeed);
+        //     } else {
+        //       m_telescope.set(TalonSRXControlMode.PercentOutput,0);
+        //     }
+        //   } else {
+        //     m_telescope.set(TalonSRXControlMode.PercentOutput, -Constants.TelescopeConstants.telescopeSpeed);
+        //   } 
+        // } else {
+        //   m_telescope.set(TalonSRXControlMode.PercentOutput, 0);
+        // }
+
+        if(telescopeSpeed == 1 ) {
           if (wedonotwantogoupanymore) {
             if( -armJoystick.getRawAxis(Constants.TelescopeConstants.throttleAxis) < 0.0 ) {
-              m_telescope.set(TalonSRXControlMode.PercentOutput, Constants.TelescopeConstants.telescopeSpeed);
+              m_telescope.set(TalonSRXControlMode.PercentOutput, returnSpeed());
             } else {
               m_telescope.set(TalonSRXControlMode.PercentOutput,0);
             }
           } else {
             m_telescope.set(TalonSRXControlMode.PercentOutput, Constants.TelescopeConstants.telescopeSpeed);
           }
-        } else if(telescopeSpeed < -0.2) {
+        } else if(telescopeSpeed == -1) {
           if(wedonotwantogodownanymore) {
             if( -armJoystick.getRawAxis(Constants.TelescopeConstants.throttleAxis) > 0.0 ) {
               m_telescope.set(TalonSRXControlMode.PercentOutput, Constants.TelescopeConstants.telescopeSpeed);
@@ -94,11 +118,26 @@ public class Telescope extends SubsystemBase {
               m_telescope.set(TalonSRXControlMode.PercentOutput,0);
             }
           } else {
-            m_telescope.set(TalonSRXControlMode.PercentOutput, -Constants.TelescopeConstants.telescopeSpeed);
+            m_telescope.set(TalonSRXControlMode.PercentOutput, returnSpeed());
           } 
         } else {
           m_telescope.set(TalonSRXControlMode.PercentOutput, 0);
         }
+    }
+
+    public double returnSpeed() {
+      if( !resetEncoders.getBoolean(false) ) {
+        if( telescopeEncoder.getRaw() < 500 ) {
+          return Constants.ArmConstants.armSpeed / -2.0;
+        } else if( telescopeEncoder.getRaw() < 1000 ) {
+          return Constants.ArmConstants.armSpeed / -1.5;
+        } else {
+          return -Constants.ArmConstants.armSpeed;
+        }
+      }
+      else {
+        return Constants.ArmConstants.armSpeed / -2.5;
+      }
     }
 
     public void passedLimits(double lowerLimit, double upperLimit) {
@@ -114,4 +153,26 @@ public class Telescope extends SubsystemBase {
           wedonotwantogoupanymore = false;
         }
     }
+
+    public double getTelescopePosition() {
+      return telescopeEncoder.getRaw();
+    }
+
+    // public void MoveTelescopeToPosition(int position) {
+    //   if(getTelescopePosition() < position ) {
+    //     if (wedonotwantogoupanymore) {
+    //       m_telescope.set(TalonSRXControlMode.PercentOutput,0);
+    //     } else {
+    //       m_telescope.set(TalonSRXControlMode.PercentOutput, Constants.TelescopeConstants.telescopeSpeed);
+    //     }
+    //   } else if(getTelescopePosition() > position) {
+    //     if(wedonotwantogodownanymore) {
+    //       m_telescope.set(TalonSRXControlMode.PercentOutput,0);
+    //     } else {
+    //       m_telescope.set(TalonSRXControlMode.PercentOutput, -Constants.TelescopeConstants.telescopeSpeed);
+    //     } 
+    //   } else {
+    //     m_telescope.set(TalonSRXControlMode.PercentOutput, 0);
+    //   }
+    // }
 }

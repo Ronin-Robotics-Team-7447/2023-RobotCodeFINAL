@@ -55,31 +55,28 @@ public final class Constants {
   public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 1;
   public static final int FRONT_LEFT_MODULE_STEER_MOTOR = 2;
   public static final int FRONT_LEFT_MODULE_STEER_ENCODER = 11;
-  // public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(163.828 + 90.0 + 45.0 + 45.0 + 180.0 - 90.0);
-  // public static final double FRONT_LEFT_MODULE_STEER_OFFSET = 0;
-  public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(291.09375);
+  // public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(291.09375);
+  public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(130.78125-15);
 
   public static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 8;
   public static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 7;
   public static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 9;
-  // public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(77.168 + 90.0 + 45.0 - 45.0 + 180.0);
-  // public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 0;
-  public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(245.830078125);
+  // public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(245.830078125);
+  public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(66.62109375);
+
 
   public static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 4;
   public static final int BACK_LEFT_MODULE_STEER_MOTOR = 3;
   public static final int BACK_LEFT_MODULE_STEER_ENCODER = 12;
-  // public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(316.758 + 45.0 + 45.0 + 90.0);
-  // public static final double BACK_LEFT_MODULE_STEER_OFFSET = 0;
-  public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(294.08203125);
+  // public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(294.08203125);
+  public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(111.97265625000001);
+
   
 
   public static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 6;
   public static final int BACK_RIGHT_MODULE_STEER_MOTOR = 5;
   public static final int BACK_RIGHT_MODULE_STEER_ENCODER = 10;
-  // public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(302.959 + 90.0 + 45.0 - 45.0 + 90.0 - 90.0 - 180.0);
-  // public static final double BACK_RIGHT_MODULE_STEER_OFFSET = 0;
-  public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(234.580078125);
+  public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(54.58007812499999);
 
   // The formula for calculating the theoretical maximum velocity is:
   // <Motor free speed RPM> / 60 * <Drive reduction> * <Wheel diameter meters> *
@@ -127,23 +124,61 @@ public final class Constants {
     public static final int logitechID = 1;
     public static final int telescopeID = 16;
     public static final int throttleAxis = 3;
-    public static final double telescopeSpeed = 0.3;
-    public static final int upperLimit = 10;
+    public static final double telescopeSpeed = 0.7;
+    public static final double nearGoalSpeed = 0.1;
+    public static final int upperLimit = 1934;
     public static final int bottomLimit = 0;
+
+    public static final int fullyExtendedPosition = 500;
+    public static final int maxPositionForSlewToWork = 0;
   }
 
   public static final class ArmConstants {
     public static final int ArmEncoderID = 0;
     public static final int ArmID = 17;
     public static final int gripYAxis = 1;
-    public static final double armSpeed = 0.3;
-    public static final double upperLimit = 0.0;
-    public static final double lowerLimit = 0.0;
+    // public static final double armSpeed = 0.6;
+    public static final double armSpeed = 0.;
+    public static final double upperLimit = 95.0;
+    public static final double lowerLimit = 181.0;
+    public static final double lowerLimitWhenTelescopeExtended = 120.0;
+
+    public static final double highConeArmPosition = 195.0;
+  }
+
+  public static final class WristConstants {
+    public static final int WristID = 13;
+    public static final int ClawID = 15;
+    public static final int WristEncoderID = 3;
+    public static final double wristSpeed = 0.4;
+    public static final double clawSpeed = 0.6;
+    public static final double upperLimit = 104.0;
+    public static final double lowerLimit = 272.0;
+
+    public static final double testPos = 0.0;
+  }
+
+  public static class ArmJoystickConstants {
+    public static final int buttonPOV0 = 0;
+    public static final int buttonPOV180 = 180;
+
+    public static final int button1 = 1;
+    public static final int button2 = 2;
+    public static final int button3 = 3;
+    public static final int button4 = 4;
+    public static final int button5 = 5;
+    public static final int button6 = 6;
+    public static final int button7 = 7;
+    public static final int button8 = 8;
+    public static final int button9 = 9;
+    public static final int button10 = 10;
+    public static final int button11 = 11;
+    public static final int button12 = 12;
   }
 
   public static final class VisionConstants {
-    public static final double LIMELIGHT_TO_ROBOT_X = -0.1966595;
-    public static final int LIMELIGHT_TO_FLOOR_DISTANCE_METERS = 0;
+    public static final double LIMELIGHT_TO_ROBOT_X = 0.127;
+    public static final double LIMELIGHT_TO_FLOOR_DISTANCE_METERS = 0.9906;
   }
 
   public static final class ControllerIds {

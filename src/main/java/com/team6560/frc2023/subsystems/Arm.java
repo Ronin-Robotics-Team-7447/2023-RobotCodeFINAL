@@ -10,6 +10,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.team6560.frc2023.Constants;
+import com.team6560.frc2023.utility.NetworkTable.NtValueDisplay;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -21,24 +22,31 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static com.team6560.frc2023.Constants.*;
 
 public class Arm extends SubsystemBase {
+  Telescope m_telescope;
+
   CANSparkMax m_arm;
   GenericHID armJoystick;
 
+  double curAngle = 0.0;
   DutyCycleEncoder m_armEncoder;
+  double lowerLimitInCode;
 
+  double telescopePosition = 0.0; 
   boolean wedonotwantogoupanymore = false;
   boolean wedonotwantogodownanymore = false;
 
   NetworkTable networkTable = NetworkTableInstance.getDefault().getTable("arm");
   NetworkTableEntry currentPositionNT = networkTable.getEntry("Arm Current Position Angle");
-  NetworkTableEntry upperLimitNT = networkTable.getEntry("Arm Lower Limit");
-  NetworkTableEntry lowerLimitNT = networkTable.getEntry("Arm Upper Limit");
-  NetworkTableEntry disableLimits = networkTable.getEntry("Disable Arm Limits");
+  NetworkTableEntry upperLimitNT = networkTable.getEntry("Arm Upper Limit");
+  NetworkTableEntry lowerLimitNT = networkTable.getEntry("Arm Lower Limit");
+  NetworkTableEntry enableLimits = networkTable.getEntry("Enable Arm Limits");
 
   public Arm() {
     armJoystick = new GenericHID(Constants.TelescopeConstants.logitechID);
     m_arm = new CANSparkMax(Constants.ArmConstants.ArmID, MotorType.kBrushless);
     m_arm.setIdleMode(IdleMode.kBrake);
+    m_arm.setSmartCurrentLimit(25);
+
     m_arm.setInverted(false);
 
     m_armEncoder = new DutyCycleEncoder(Constants.ArmConstants.ArmEncoderID);
@@ -47,57 +55,130 @@ public class Arm extends SubsystemBase {
     currentPositionNT.setDouble(0.0);
     upperLimitNT.setDouble(Constants.ArmConstants.upperLimit);
     lowerLimitNT.setDouble(Constants.ArmConstants.lowerLimit);
-    disableLimits.setBoolean(false);
+    enableLimits.setBoolean(false);
+
+    /* NtValueDisplay.ntDispTab("Arm")
+      .add("Current Position Angle", this::getAngle); */
   }
 
+  
   @Override
   public void periodic() {
-    currentPositionNT.setDouble(m_armEncoder.getAbsolutePosition() * 360);
-    if( disableLimits.getBoolean(false) ) {
-      this.setArmSpeed(-armJoystick.getRawAxis(Constants.ArmConstants.gripYAxis));
+    // telescopePosition = m_telescope.getTelescopePosition();
+    curAngle = m_armEncoder.getAbsolutePosition() * 360;
+    currentPositionNT.setDouble(curAngle);
+
+    if( enableLimits.getBoolean(false) ) {
+      resetLimits();
+      this.setArmSpeed(armJoystick.getRawAxis(Constants.ArmConstants.gripYAxis));
     } else {
+      this.setArmSpeed(armJoystick.getRawAxis(Constants.ArmConstants.gripYAxis));
       passedLimits();
-      this.setArmSpeed(-armJoystick.getRawAxis(Constants.ArmConstants.gripYAxis));
     }
+
+    lowerLimitInCode = lowerLimitNT.getDouble(Constants.ArmConstants.lowerLimit);
+
+    // if(telescopePosition >= 500 ) {
+    //   lowerLimitInCode = Constants.ArmConstants.lowerLimitWhenTelescopeExtended;
+    // } else {
+    //   lowerLimitInCode = lowerLimitNT.getDouble(Constants.ArmConstants.lowerLimit);
+    // }
   }
 
   public void setArmSpeed(double armSpeed) {
-    if( armSpeed > 0.2 ) {
+    if( armSpeed > 0.3 ) {
       if(wedonotwantogodownanymore) {
         if( armJoystick.getRawAxis(Constants.ArmConstants.gripYAxis) < 0.0 ) {
-          m_arm.set(Constants.ArmConstants.armSpeed);
+          m_arm.set(returnSpeed());
         } else {
           m_arm.set(0);
         }
       } else {
-        m_arm.set(-Constants.ArmConstants.armSpeed);
+        m_arm.set(-returnSpeed());
       } 
-    } else if( armSpeed < -0.2 ) {
+    } else if( armSpeed < -0.3 ) {
       if (wedonotwantogoupanymore) {
         if( armJoystick.getRawAxis(Constants.ArmConstants.gripYAxis) > 0.0 ) {
-          m_arm.set(-Constants.ArmConstants.armSpeed);
+          m_arm.set(-returnSpeed());
         } else {
           m_arm.set(0);
         }
       } else {
-        m_arm.set(Constants.ArmConstants.armSpeed);
+        m_arm.set(returnSpeed());
       }
     } else {
       m_arm.set(0);
     }
+  }
+  public double returnSpeed() {
+    if( curAngle > 152 ) {
+      return Constants.ArmConstants.armSpeed / 2.0;
+    } else if( curAngle > 166 ) {
+      return Constants.ArmConstants.armSpeed / 4.0;
+    } else {
+      return Constants.ArmConstants.armSpeed;
     }
+  }
+
+  // public double returnSpeed(double goal) {
+  //   // as x increases, the y should increase
+  //   // as x decreases, the y should decrease
+  //   double speed = 0.0;
+  //   double difference = Math.abs(curAngle - goal);
+  //   if( curAngle-goal != 0 ) {
+  //     speed = 1/difference;
+  //   } else { speed = 0; }
+  //   return speed;
+  //   speed * (value) = 
+  // }
+
+// public double returnSpeed(double goal) {
+//   return Constants.ArmConstants.armSpeed * (curAngle - goal) / 
+//     (Constants.ArmConstants.lowerLimit -
+//     Constants.ArmConstants.upperLimit);
+// }
 
   public void passedLimits() {
-    double curAngle = currentPositionNT.getDouble(200.0);
+
     if( curAngle <= upperLimitNT.getDouble(0.0) ) {
       wedonotwantogoupanymore = true;
       wedonotwantogodownanymore = false;
-    } else if( curAngle >= lowerLimitNT.getDouble(0.0) ) {
+    } else if( curAngle >= lowerLimitInCode ) {
       wedonotwantogodownanymore = true;
       wedonotwantogoupanymore = false;
-    } else if( curAngle <= lowerLimitNT.getDouble(0.0) && curAngle >= upperLimitNT.getDouble(0.0) ) {
+    } else if( curAngle <= lowerLimitInCode && curAngle >= upperLimitNT.getDouble(0.0) ) {
       wedonotwantogodownanymore = false;
       wedonotwantogoupanymore = false;
     }
+  }
+
+  public void resetLimits() {
+    wedonotwantogodownanymore = false;
+    wedonotwantogoupanymore = false;
+  }
+
+  // public void moveArmToAngle(double angle) {
+  //   double secondCurAngle = Math.ceil(curAngle);
+  //   passedLimits();
+
+  //   if( secondCurAngle < angle ) {
+  //     if(wedonotwantogodownanymore) {
+  //       m_arm.set(0);
+  //     } else {
+  //       m_arm.set(-returnSpeed());
+  //     } 
+  //   } else if( secondCurAngle > angle ) {
+  //     if (wedonotwantogoupanymore) {
+  //       m_arm.set(0);
+  //     } else {
+  //       m_arm.set(returnSpeed());
+  //     }
+  //   } else {
+  //     m_arm.set(0);
+  //   }
+  // }
+
+  public void stopArm() {
+    m_arm.stopMotor();
   }
 }

@@ -7,6 +7,7 @@ package com.team6560.frc2023.controls;
 import com.team6560.frc2023.Constants;
 import com.team6560.frc2023.Constants.*;
 import com.team6560.frc2023.subsystems.Limelight;
+import com.team6560.frc2023.subsystems.Telescope;
 import com.team6560.frc2023.commands.DriveCommand;
 import com.team6560.frc2023.utility.NumberStepper;
 import com.team6560.frc2023.utility.PovNumberStepper;
@@ -38,6 +39,7 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
   private boolean prevclimbEngaged;
   private boolean climbEngaged;
 
+  Telescope m_telescope;
   /**
    * Creates a new `ManualControls` instance.
    *
@@ -113,7 +115,7 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
     // Square the axis
     value = Math.copySign(value * value, value);
 
-    // // Slew Rate Limiter
+    // Slew Rate Limiter
     // SlewRateLimiter limiter = new SlewRateLimiter(3);
     // value = limiter.calculate(value);
 
@@ -128,7 +130,11 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
    */
   @Override
   public double driveX() {
-    return modifyAxis(xbox.getLeftY() * speed.get());
+    /*if(m_telescope.getTelescopePosition() > Constants.TelescopeConstants.maxPositionForSlewToWork ) {
+      return modifyAxis(xbox.getLeftY() * speed.get() * 0.5);
+    }
+    else return modifyAxis(xbox.getLeftY() * speed.get());*/
+    return modifyAxis(-xbox.getLeftY() * speed.get());
   }
 
   /**
@@ -139,7 +145,11 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
    */
   @Override
   public double driveY() {
-    return modifyAxis(xbox.getLeftX() * speed.get());
+    // if(m_telescope.getTelescopePosition() > Constants.TelescopeConstants.maxPositionForSlewToWork ) {
+    //   return modifyAxis(xbox.getLeftX() * speed.get() * 0.5);
+    // }
+    // else return modifyAxis(xbox.getLeftX() * speed.get());
+    return modifyAxis(-xbox.getLeftX() * speed.get());
   }
 
   /**
@@ -217,7 +227,6 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
     return this.climbTable.getEntry("climbVelocityL").getDouble(0.0);
   }
 
-
   @Override
   public double climbVelocityR() {
     return this.climbTable.getEntry("climbVelocityR").getDouble(0.0);
@@ -228,5 +237,4 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
   public boolean driveIsAutoRotating() {
     return xbox.getLeftTriggerAxis() > 0.5;
   }
-
 }

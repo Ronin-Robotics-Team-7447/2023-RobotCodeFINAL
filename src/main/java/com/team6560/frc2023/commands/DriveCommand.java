@@ -1,5 +1,7 @@
 package com.team6560.frc2023.commands;
 
+import java.util.ArrayList;
+
 import com.team6560.frc2023.Constants;
 import com.team6560.frc2023.commands.auto.AutoBuilder;
 import com.team6560.frc2023.subsystems.Drivetrain;
@@ -12,6 +14,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -78,6 +81,8 @@ public class DriveCommand extends CommandBase {
 
     private double lastTranslationX;
 
+    private boolean autoAlignReady;
+
     /**
      * Creates a new `DriveCommand` instance.
      *
@@ -125,8 +130,8 @@ public class DriveCommand extends CommandBase {
         if (isOverridingAngle)
             drivetrain.driveNoX(
                     ChassisSpeeds.fromFieldRelativeSpeeds(
-                            controls.driveX(),
-                            controls.driveY(),
+                            controls.driveX() * controls.driveBoostMultiplier(),
+                            controls.driveY() * controls.driveBoostMultiplier(),
                             calculated,
                             drivetrain.getGyroscopeRotation()));
     }
@@ -164,13 +169,8 @@ public class DriveCommand extends CommandBase {
 
         double calculatedRotation = driveRotationPIDController.calculate(currentRotation, lastRotationTheta);
 
-        if (driveRotationPIDController.atSetpoint()) {
-            isOverridingAngle = false;
-        } else
-            isOverridingAngle = true;
-
         if (limelight.getTargetArea() < 0.5)
-            translationX += translationX > 0 ? -13.2 : 13.2;
+            translationX += translationX > 0 ? 14.35 : -14.35;
 
         lastTranslationY = translationY;
         lastTranslationX = translationX;
@@ -182,15 +182,14 @@ public class DriveCommand extends CommandBase {
 
         // System.out.println(driveRotationPIDController.getPositionError());
 
-        // if (!limelight.hasTarget() ||
-        // Math.abs(driveRotationPIDController.getPositionError()) > 7.5) {
-        // calculatedTranslationX = 0.0;
-        // calculatedTranslationY = 0.0;
-        // }
+        if (!limelight.hasTarget() || Math.abs(driveRotationPIDController.getPositionError()) > 7.5) {
+            calculatedTranslationX = 0.0;
+            calculatedTranslationY = 0.0;
+        }
 
         drivetrain.driveNoX(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
-                        calculatedTranslationX,
+                        controls.driveX(),
                         calculatedTranslationY,
                         isOverridingAngle ? calculatedRotation : controls.driveRotationX(),
                         drivetrain.getGyroscopeRotation()));
@@ -213,6 +212,111 @@ public class DriveCommand extends CommandBase {
         translateAndRotate(xAngle, yAngle, rotation);
     }
 
+    public void autoAlign2() {
+        Pose2d estimatedGlobalPose = drivetrain.getPose();
+
+        // ArrayList<Pose2d> allAprilTagPoses = new ArrayList<Pose2d>();
+
+        // Constants.APRIL_TAG_FIELD_LAYOUT.getTags().forEach((i) -> {
+            // allAprilTagPoses.add(i.pose.toPose2d());
+        // });
+
+        // int currTargetId = limelight.getCurrentApriltagId();
+        // Optional<Pose3d> optional =
+        // Constants.APRIL_TAG_FIELD_LAYOUT.getTagPose(currTargetId);
+        // Pose2d apriltagPose = optional.isPresent() ? optional.get().toPose2d() :
+        // null;
+
+        // Pose2d apriltagPose = estimatedGlobalPose.nearest(allAprilTagPoses);
+
+
+        // Pose2d[] nearestApriltagPoses = { apriltagPose};
+
+        // if (apriltagPose == null || nearestApriltagPoses == null)
+            // return;
+
+        ArrayList<Pose2d> possibleLocations = new ArrayList<Pose2d>();
+
+        // double getXDistMeters = 0.804545;
+        // double getYDistMeters = 1.0;
+
+        // double getXDistMeters_cone = 0.94;
+        // double getXDistMeters_cube = 1.2;
+        // double getYDistMeters_up = 0.5558;
+        // double getYDistMeters_down = 0.5558;
+        // double getYDistMeters = 0.5538;
+
+        // if ((blueHumanPlayerApriltag.isPresent()
+        // && blueHumanPlayerApriltag.get().toPose2d().equals(apriltagPose))
+        // || (redHumanPlayerApriltag.isPresent()
+        // && redHumanPlayerApriltag.get().toPose2d().equals(apriltagPose))) {
+        // // the closest apriltag is the blue or red human player apriltag
+
+        // }
+
+
+        if (true) {
+            possibleLocations.add(new Pose2d(1.3751 + Units.inchesToMeters(17.75 + 3.0), 1.0715, Rotation2d.fromRotations(0.5)));
+            possibleLocations.add(new Pose2d(1.3751 + Units.inchesToMeters(17.75 + 3.0), 4.4243, Rotation2d.fromRotations(0.5)));
+            possibleLocations.add(new Pose2d(1.3751 + Units.inchesToMeters(17.75 + 3.0), 2.7479, Rotation2d.fromRotations(0.5)));
+    
+            possibleLocations.add(new Pose2d(15.1603 - Units.inchesToMeters(17.75 + 3.0), 1.0715, Rotation2d.fromRotations(0.0)));
+            possibleLocations.add(new Pose2d(15.1603 - Units.inchesToMeters(17.75 + 3.0), 4.4243, Rotation2d.fromRotations(0.0)));
+            possibleLocations.add(new Pose2d(15.1603 - Units.inchesToMeters(17.75 + 3.0), 2.7479, Rotation2d.fromRotations(0.0)));
+        } else {
+            possibleLocations.add(new Pose2d(1.3751 + Units.inchesToMeters(17.75 + 3.0), 0.5127, Rotation2d.fromRotations(0.5)));
+            possibleLocations.add(new Pose2d(1.3751 + Units.inchesToMeters(17.75 + 3.0), 1.6303, Rotation2d.fromRotations(0.5)));
+            possibleLocations.add(new Pose2d(1.3751 + Units.inchesToMeters(17.75 + 3.0), 2.1891, Rotation2d.fromRotations(0.5)));
+            possibleLocations.add(new Pose2d(1.3751 + Units.inchesToMeters(17.75 + 3.0), 3.3091, Rotation2d.fromRotations(0.5)));
+            possibleLocations.add(new Pose2d(1.3751 + Units.inchesToMeters(17.75 + 3.0), 3.8655, Rotation2d.fromRotations(0.5)));
+            possibleLocations.add(new Pose2d(1.3751 + Units.inchesToMeters(17.75 + 3.0), 4.9847, Rotation2d.fromRotations(0.5)));
+    
+            possibleLocations.add(new Pose2d(15.1603 - Units.inchesToMeters(17.75 + 3.0), 0.5127, Rotation2d.fromRotations(0.0)));
+            possibleLocations.add(new Pose2d(15.1603 - Units.inchesToMeters(17.75 + 3.0), 1.6303, Rotation2d.fromRotations(0.0)));
+            possibleLocations.add(new Pose2d(15.1603 - Units.inchesToMeters(17.75 + 3.0), 2.1891, Rotation2d.fromRotations(0.0)));
+            possibleLocations.add(new Pose2d(15.1603 - Units.inchesToMeters(17.75 + 3.0), 3.3091, Rotation2d.fromRotations(0.0)));
+            possibleLocations.add(new Pose2d(15.1603 - Units.inchesToMeters(17.75 + 3.0), 3.8655, Rotation2d.fromRotations(0.0)));
+            possibleLocations.add(new Pose2d(15.1603 - Units.inchesToMeters(17.75 + 3.0), 4.9847, Rotation2d.fromRotations(0.0)));
+        }
+        
+
+        // for (Pose2d i : nearestApriltagPoses) {
+        //     if ((controls.isCubeMode())) {
+
+        //         possibleLocations.add(i
+        //                 .plus(new Transform2d(new Translation2d(getXDistMeters_cube, 0.0),
+        //                         Rotation2d.fromRotations(0.5))));
+        //         possibleLocations
+        //                 .add(apriltagPose
+        //                         .plus(new Transform2d(new Translation2d(-getXDistMeters_cube, 0.0), new Rotation2d())));
+        //     } else {
+        //         if (controls.desiredConeLocation() >= 0) {
+        //             possibleLocations.add(i.plus(
+        //                     new Transform2d(new Translation2d(getXDistMeters_cone, getYDistMeters_up),
+        //                             Rotation2d.fromRotations(0.5))));
+        //             possibleLocations.add(i
+        //                     .plus(new Transform2d(new Translation2d(-getXDistMeters_cone, getYDistMeters_up),
+        //                             new Rotation2d())));
+        //         }
+        //         if (controls.desiredConeLocation() <= 0) {
+        //             possibleLocations
+        //                     .add(i.plus(new Transform2d(new Translation2d(getXDistMeters_cone, -getYDistMeters_down),
+        //                             Rotation2d.fromRotations(0.5))));
+
+        //             possibleLocations.add(i
+        //                     .plus(new Transform2d(new Translation2d(-getXDistMeters_cone, -getYDistMeters_down),
+        //                             new Rotation2d())));
+        //         }
+        //     }
+
+        // }
+
+        Pose2d desiredPose = estimatedGlobalPose.nearest(possibleLocations);
+
+        goToPoseAutoCommand = autoBuilder.goToPose(desiredPose, new Rotation2d(0));
+
+    }
+
     @Override
     public void initialize() {
     }
@@ -221,8 +325,33 @@ public class DriveCommand extends CommandBase {
     public void execute() {
 
         if (controls.autoAlign()) {
-            autoAlign();
+            if (goToPoseAutoCommand == null) {
+                autoAlign2();
+                return;
+            }
+
+            if (!goingToPose) {
+                drivetrain.setAutoLock(true);
+                goToPoseAutoCommand.initialize();
+                // System.out.println("TEST!!!");
+                goingToPose = true;
+            } else if (autoAlignReady)
+                goToPoseAutoCommand.execute();
+
+            if (goToPoseAutoCommand.isFinished()) {
+                this.autoAlignReady = false;
+                goToPoseAutoCommand = null;
+                goingToPose = false;
+                drivetrain.setAutoLock(false);
+                drivetrain.stopModules();
+            }
+
             return;
+        } else {
+            this.autoAlignReady = true;
+            drivetrain.setAutoLock(false);
+            goToPoseAutoCommand = null;
+            goingToPose = false;
         }
 
         if (controls.driveIsAutoRotating()) {
@@ -255,18 +384,33 @@ public class DriveCommand extends CommandBase {
         if (controls.driveResetGlobalPose())
             drivetrain.resetOdometry(new Pose2d());
 
-        drivetrain.setOverrideMaxVisionPoseCorrection(controls.overrideMaxVisionPoseCorrection());
+        double poseX = drivetrain.getPose().getX();
+        Pose2d estPose = drivetrain.getLimelightEstimatedPosition();
+        Double poseXEstimated = estPose == null ? null : estPose.getX();
+        Pose2d odometryEstimatedPose = drivetrain.getOdometryPose2dNoApriltags();
+        Double odometryEstX = odometryEstimatedPose == null ? null : odometryEstimatedPose.getX();
 
-        drivetrain.drive(
-                ChassisSpeeds.fromFieldRelativeSpeeds(
-                        controls.driveX() * controls.driveBoostMultiplier(),
-                        controls.driveY() * controls.driveBoostMultiplier(),
-                        controls.driveRotationX()
-                                * (controls.driveBoostMultiplier() > 1.0 ? 1.0 : controls.driveBoostMultiplier()),
-                        drivetrain.getGyroscopeRotation())); // perhaps use getRawGyroRotation() instead?
+        if ((poseX > 0 && poseX < Constants.FieldConstants.length * 0.25) || (poseX > Constants.FieldConstants.length * 0.75 && poseX < Constants.FieldConstants.length)) {
+            drivetrain.setOverrideMaxVisionPoseCorrection(true);
 
+        } else if (poseXEstimated != null && ((poseXEstimated > 0 && poseXEstimated < Constants.FieldConstants.length * 0.25) || (poseXEstimated > Constants.FieldConstants.length * 0.75 && poseXEstimated < Constants.FieldConstants.length))) {
+            drivetrain.setOverrideMaxVisionPoseCorrection(true);
+        } else if (odometryEstX != null && ((odometryEstX > 0 && odometryEstX < Constants.FieldConstants.length * 0.25) || (odometryEstX > Constants.FieldConstants.length * 0.75 && odometryEstX < Constants.FieldConstants.length)))
+            drivetrain.setOverrideMaxVisionPoseCorrection(true);
+        else {
+            drivetrain.setOverrideMaxVisionPoseCorrection(controls.overrideMaxVisionPoseCorrection());
+        }
+
+        drivetrain.setOverrideMaxVisionPoseCorrection(true);
+
+            drivetrain.drive(
+                    ChassisSpeeds.fromFieldRelativeSpeeds(
+                            controls.driveX() * controls.driveBoostMultiplier(),
+                            controls.driveY() * controls.driveBoostMultiplier(),
+                            controls.driveRotationX()
+                                    * (controls.driveBoostMultiplier() > 1.0 ? 1.0 : controls.driveBoostMultiplier()),
+                            drivetrain.getGyroscopeRotationNoApriltags())); // perhaps use getRawGyroRotation() instead?
     }
-
     /**
      * Called when the command ends or is interrupted.
      *

@@ -19,6 +19,7 @@ import com.pathplanner.lib.auto.PIDConstants;
 import com.pathplanner.lib.auto.SwerveAutoBuilder;
 import com.team6560.frc2023.Constants;
 import com.team6560.frc2023.subsystems.Arm;
+import com.team6560.frc2023.subsystems.Claw;
 import com.team6560.frc2023.subsystems.Drivetrain;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -29,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 /**
  * 
@@ -64,29 +66,20 @@ public class AutoBuilder {
    * An instance of Drivetrain that represents the drive subsystem.
    */
   private Drivetrain drivetrain;
-
+  private SwerveAutoBuilder teleopAutoBuilder;
+  private Claw claw;
   /**
    * 
    * Constructor for AutoBuilder class. Initializes eventMap, autoBuilder, and drivetrain.
    * 
    * @param drivetrain An instance of Drivetrain that represents the drive ubsystem.
    */
-  public AutoBuilder(Drivetrain drivetrain) {
+  public AutoBuilder(Drivetrain drivetrain, Claw claw) {
     this.drivetrain = drivetrain;
+    this.claw = claw;
 
     eventMap = new HashMap<>();
     eventMap.put("printCommand", new PrintCommand("test Print command"));
-    // eventMap.put("PLACE_CONE_HIGH", new RunCommand( () -> arm.setArmState(ArmPose.HIGH_CONE), arm).until( () -> arm.isArmAtSetpoint()));
-    // eventMap.put("PLACE_CONE_HIGH", new MoveArmToPoseCommand(arm, ArmPose.HIGH_CONE));
-    // eventMap.put("PLACE_CONE_MID", new MoveArmToPoseCommand(arm, ArmPose.MEDIUM_CONE));
-    // eventMap.put("PLACE_LOW_CUBE", new MoveArmToPoseCommand(arm, ArmPose.LOW_CUBE));
-    // eventMap.put("PLACE_LOW_CONE", new MoveArmToPoseCommand(arm, ArmPose.LOW_CONE));
-    // eventMap.put("PLACE_CUBE_HIGH", new MoveArmToPoseCommand(arm, ArmPose.HIGH_CUBE));
-    // eventMap.put("PLACE_CUBE_MID", new MoveArmToPoseCommand(arm, ArmPose.MEDIUM_CUBE));
-    // eventMap.put("PICK_GROUND_CUBE", new MoveArmToPoseCommand(arm, ArmPose.GROUND_CUBE));
-    // eventMap.put("PICK_GROUND_CONE", new MoveArmToPoseCommand(arm, ArmPose.GROUND_CONE));
-
-
 
     autoBuilder = new SwerveAutoBuilder(
         () -> drivetrain.getPose(), // Pose2d supplier
@@ -98,7 +91,18 @@ public class AutoBuilder {
         eventMap,
         drivetrain // The drive subsystem. Used to properly set the requirements of path following commands
     );
-
+    teleopAutoBuilder = new SwerveAutoBuilder(
+        () -> drivetrain.getPose(), // Pose2d supplier
+        (pose) -> drivetrain.resetOdometry(pose), // Pose2d consumer, used to reset odometry at the beginning of auto
+        Constants.m_kinematics, // SwerveDriveKinematics
+        new PIDConstants(5.0, 0.0, 0.0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+        new PIDConstants(0.6, 0.1, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
+        (state) -> drivetrain.autoSetChassisState(state), // Module states consumer used to output to the drive
+                                                          // subsystem
+        eventMap,
+        false,
+        drivetrain // The drive subsystem. Used to properly set the requirements of path following commands
+    );
   }
 
   /**
@@ -112,37 +116,9 @@ public class AutoBuilder {
   public Command getAutoCommand(String pathName) {
     // This will load the file "FullAuto.path" and generate it with a max velocity
     // of 2.0 m/s and a max acceleration of 1.0 m/s^2 for every path in the group
-    pathGroup = PathPlanner.loadPathGroup(pathName, new PathConstraints(1.5, 0.75));
+    pathGroup = PathPlanner.loadPathGroup(pathName, new PathConstraints(0.75, 0.35));
 
-    drivetrain.resetOdometry(pathGroup.get(0).getInitialHolonomicPose());
-
-    // List<String> stopEventList = new ArrayList<String>();
-
-    // stopEventList.add("Waypoint 1");
-
-    // autoBuilder.stopEventGroup(new StopEvent(new ArrayList<>(), ExecutionBehavior.SEQUENTIAL, WaitBehavior.AFTER, 1.0));
-
-
-    // return new SequentialCommandGroup(
-    //     new MoveArmToPoseCommand(this.arm, ArmPose.HIGH_CONE),
-    //     new MoveArmPistonCommand(this.arm, false),
-    //     new MoveArmToPoseCommand(this.arm, ArmPose.DEFAULT),
-    //     autoBuilder.fullAuto(pathGroup.get(0)),
-    //     new SequentialCommandGroup(
-    //       new MoveArmToPoseCommand(this.arm, ArmPose.GROUND_CONE),
-    //       new MoveArmPistonCommand(arm, false),
-    //       new MoveArmToPoseCommand(arm, ArmPose.DEFAULT)
-    //     )
-    //       .alongWith(autoBuilder.fullAuto(pathGroup.get(1))),
-
-    //     new SequentialCommandGroup(
-    //       autoBuilder.fullAuto(pathGroup.get(2)),
-    //       new MoveArmToPoseCommand(this.arm, ArmPose.HIGH_CUBE)//,
-    //       // new MoveArmPistonCommand(this.arm, false)
-    //     )
-    //   );
     return autoBuilder.fullAuto(pathGroup);
-
   }
 
   /**
@@ -153,7 +129,7 @@ public class AutoBuilder {
    * 
    * @return Command for autonomous action to go to the specified Pose2d.
    */
-  public Command goToPose(Pose2d desiredPose) {
+  public Command goToPose(Pose2d desiredPose, Rotation2d heading) {
 
     Pose2d currPose = drivetrain.getPose();
 
@@ -161,18 +137,28 @@ public class AutoBuilder {
 
     double currSpeed = Math.abs(Math.hypot(currChassisSpeeds.vxMetersPerSecond, currChassisSpeeds.vyMetersPerSecond));
 
-    Rotation2d heading = desiredPose.getTranslation().minus(currPose.getTranslation()).getAngle();
-
-    // More complex path with holonomic rotation. Non-zero starting velocity of
-    // currSpeed. Max velocity of 4 m/s and max accel of 3 m/s^2
     PathPlannerTrajectory traj = PathPlanner.generatePath(
-        new PathConstraints(0.5, 0.25),
+        new PathConstraints(0.5, 0.3),
         // position, heading(direction of travel), holonomic rotation, velocity verride
         new PathPoint(currPose.getTranslation(), heading, currPose.getRotation(), currSpeed),
-        new PathPoint(desiredPose.getTranslation(), heading, desiredPose.getRotation())
-    );
+        new PathPoint(desiredPose.getTranslation(), heading, desiredPose.getRotation()));
 
-    return autoBuilder.followPath(traj);
+    return teleopAutoBuilder.followPath(traj);
+  }
+
+  public Command getPathStraightWithIntakeOut() {
+    pathGroup = PathPlanner.loadPathGroup("ScoreSideStraight", new PathConstraints(1.5, 0.75));
+    return new SequentialCommandGroup(
+      new EnableIntake(claw).withTimeout(2),
+      autoBuilder.fullAuto(pathGroup)
+    );
+  }
+
+  public Command getStraight() {
+    pathGroup = PathPlanner.loadPathGroup("Straight", new PathConstraints(1.5, 0.75));
+    return new SequentialCommandGroup(
+      autoBuilder.fullAuto(pathGroup)
+    );
   }
 
   public Command getAutoBalanceCommand() {

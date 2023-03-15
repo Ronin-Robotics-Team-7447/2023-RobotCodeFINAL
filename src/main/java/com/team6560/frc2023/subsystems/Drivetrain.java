@@ -36,6 +36,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
@@ -46,6 +47,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.SerialPort.Port;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -95,18 +97,21 @@ public class Drivetrain extends SubsystemBase {
 
         private ChassisSpeeds currentManualSetChassisSpeeds;
 
-        private final AHRS navX = new AHRS();
+        private final AHRS navX = new AHRS(Port.kUSB1);
+
+        private final SwerveDriveOdometry odometry;
 
         public Drivetrain(Supplier<Pair<Pose2d, Double>> poseSupplier) {
-                MechanicalConfiguration mech = new MechanicalConfiguration(0.1016,1/7.13, false, 1/13.71, false);
+                MechanicalConfiguration mech = new MechanicalConfiguration(0.1016, 1/7.13, false, 1/13.71, false);
                 this.poseSupplier = poseSupplier;
 
                 ShuffleboardTab tab = Shuffleboard.getTab("Drivetrain");
 
                 NtValueDisplay.ntDispTab("Drivetrain")
                                 .add("GyroscopeRotation", () -> this.getGyroscopeRotation().getDegrees())
-                                .add("RawGyroRotation", () -> this.getRawGyroRotation().getDegrees());
-
+                                .add("RawGyroRotation", () -> this.getRawGyroRotation().getDegrees())
+                                .add("GyroscopePitch", () -> this.getGyroscopePitch().getDegrees())
+                                .add("GyroscopeRoll", () -> this.getRoll().getDegrees());
                 m_frontLeftModule = new MkSwerveModuleBuilder(MkModuleConfiguration.getDefaultSteerNEO())
                                 .withLayout(tab.getLayout("Front Left Module", BuiltInLayouts.kList)
                                                 .withSize(2, 4)
@@ -174,6 +179,7 @@ public class Drivetrain extends SubsystemBase {
                 //         i.getPIDController().setIZone(0.0);
                 // }
 
+                odometry = new SwerveDriveOdometry(m_kinematics, getRawGyroRotation(), getModulePositions());
                 
                 resetOdometry(new Pose2d());
 
@@ -181,7 +187,13 @@ public class Drivetrain extends SubsystemBase {
 
         }
 
+        public Rotation2d getGyroscopeRotationNoApriltags() {
+                return getOdometryPose2dNoApriltags().getRotation();
+        }
 
+        public Pose2d getOdometryPose2dNoApriltags() {
+                return odometry.getPoseMeters();
+        }
 
         public double getAverageModuleDriveAngularTangentialSpeed() {
                 double sum = 0;
@@ -206,7 +218,7 @@ public class Drivetrain extends SubsystemBase {
         }
 
         public Rotation2d getRawGyroRotation() {
-            return new Rotation2d(navX.getYaw() * -1 / 180 * Math.PI);
+                return new Rotation2d(navX.getYaw() * -1 / 180 * Math.PI);
         }
 
         /**
@@ -234,6 +246,19 @@ public class Drivetrain extends SubsystemBase {
                 return poseEstimator.getEstimatedPosition().getRotation();
                 // return getRawGyroRotation();
         }
+        
+        public Rotation2d getGyroscopePitch() {
+                // if (m_navx.isMagnetometerCalibrated()) {
+                // // We will only get valid fused headings if the magnetometer is calibrated
+                // return Rotation2d.fromDegrees(m_navx.getFusedHeading());
+                // }
+                // We will only get valid fused headings if the magnetometer is calibrated
+                // We have to invert the angle of the NavX so that rotating the robot
+                // counter-clockwise makes the angle increase.
+                return new Rotation2d(navX.getPitch() * -1 / 180 * Math.PI);
+
+        }
+
 
         public SwerveModulePosition[] getModulePositions() {
                 // return reverseModulePositionArray(new SwerveModulePosition[] {
@@ -310,11 +335,14 @@ public class Drivetrain extends SubsystemBase {
                         setChassisState(DEFAULT_MODULE_STATES);*/
 
                 if (driveNoX(chassisSpeeds)) {
-                                SwerveModuleState[] speeds = m_kinematics.toSwerveModuleStates(currentManualSetChassisSpeeds);
-                                SwerveDriveKinematics.desaturateWheelSpeeds(speeds, 0.0);
-                                setChassisState(speeds);
+                                // SwerveModuleState[] speeds = m_kinematics.toSwerveModuleStates(currentManualSetChassisSpeeds);
+                                // SwerveDriveKinematics.desaturateWheelSpeeds(speeds, 0.0);
+                                // setChassisState(speeds);
+                                setChassisState(DEFAULT_MODULE_STATES);
+
         
                 }
+                // setChassisState(DEFAULT_MODULE_STATES);
         }
 
         public boolean driveNoX(ChassisSpeeds chassisSpeeds) {
@@ -431,6 +459,7 @@ public class Drivetrain extends SubsystemBase {
          *             estimator
          */
         public void resetOdometry(Pose2d pose) {
+                odometry.resetPosition(getRawGyroRotation(), getModulePositions(), pose);
                 poseEstimator.resetPosition(
                                 getRawGyroRotation(),
                                 getModulePositions(), pose);
@@ -450,10 +479,10 @@ public class Drivetrain extends SubsystemBase {
                 this.overrideMaxVisionPoseCorrection = overided;
         }
 
-        /** Updates the field-relative position. */
         private void updateOdometry() {
                 poseEstimator.update(getRawGyroRotation(), getModulePositions());
 
+                odometry.update(getRawGyroRotation(), getModulePositions());
                 // Also apply vision measurements. We use 0.3 seconds in the past as an example
                 // -- on
                 // a real robot, this must be calculated based either on latency or timestamps.
@@ -462,20 +491,37 @@ public class Drivetrain extends SubsystemBase {
                         return;
 
                 Pose2d camPose = result.getFirst();
-                
+
                 if (camPose == null || camPose == new Pose2d())
-                        return;
-                
-                if (camPose.minus(getPose()).getTranslation().getNorm() > 1.5 && !overrideMaxVisionPoseCorrection)
                         return;
 
                 if (!overrideMaxVisionPoseCorrection) {
-                        // TODO: test this line of code and see if it's stupid or not
                         camPose = new Pose2d(camPose.getTranslation(), getGyroscopeRotation());
                 }
+                if (camPose.minus(getPose()).getTranslation().getNorm() > 1.5 && !overrideMaxVisionPoseCorrection)
+                        return;
 
                 double camPoseObsTime = result.getSecond();
                 poseEstimator.addVisionMeasurement(camPose, camPoseObsTime);
+        }
+
+        public Pose2d getLimelightEstimatedPosition() {
+                Pair<Pose2d, Double> result = poseSupplier.get();
+                if (result == null)
+                        return null;
+
+                Pose2d camPose = result.getFirst();
+
+                if (camPose == null || camPose == new Pose2d())
+                        return null;
+
+                if (!overrideMaxVisionPoseCorrection) {
+                        camPose = new Pose2d(camPose.getTranslation(), getGyroscopeRotation());
+                }
+                // if (camPose.minus(getPose()).getTranslation().getNorm() > 1.5 && !overrideMaxVisionPoseCorrection)
+                //         return null;
+                return camPose;
+
         }
 
         public void teleopFinesseChassisState(SwerveModuleState[] state) {
