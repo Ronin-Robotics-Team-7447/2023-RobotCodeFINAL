@@ -85,7 +85,7 @@ public class AutoBuilder {
         () -> drivetrain.getPose(), // Pose2d supplier
         (pose) -> drivetrain.resetOdometry(pose), // Pose2d consumer, used to reset odometry at the beginning of auto
         Constants.m_kinematics, // SwerveDriveKinematics
-        new PIDConstants(5.0, 0.0, 0.0), // PID constants to correct for translation error (used to create the X and Y ID controllers)
+        new PIDConstants(5.0, 0.0, 0.95), // PID constants to correct for translation error (used to create the X and Y ID controllers)
         new PIDConstants(0.5, 0.0, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
         (state) -> drivetrain.autoSetChassisState(state), // Module states consumer used to output to the drive subsystem
         eventMap,
@@ -95,7 +95,7 @@ public class AutoBuilder {
         () -> drivetrain.getPose(), // Pose2d supplier
         (pose) -> drivetrain.resetOdometry(pose), // Pose2d consumer, used to reset odometry at the beginning of auto
         Constants.m_kinematics, // SwerveDriveKinematics
-        new PIDConstants(5.0, 0.0, 0.0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+        new PIDConstants(5.0, 0.0, 0.95), // PID constants to correct for translation error (used to create the X and Y PID controllers)
         new PIDConstants(0.6, 0.1, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
         (state) -> drivetrain.autoSetChassisState(state), // Module states consumer used to output to the drive
                                                           // subsystem
@@ -154,8 +154,20 @@ public class AutoBuilder {
     );
   }
 
+  public Command getMidAround() {
+    pathGroup = PathPlanner.loadPathGroup("MidAround1", new PathConstraints(1.5, 0.75));
+    drivetrain.resetOdometry(pathGroup.get(0).getInitialHolonomicPose());
+
+    double offsetRoll = drivetrain.getRoll().getDegrees();
+    double offsetPitch = drivetrain.getPitch().getDegrees();
+    return new SequentialCommandGroup(
+      autoBuilder.fullAuto(pathGroup),
+      new ChargingStationAuto(drivetrain, offsetPitch, offsetRoll)
+    );
+  }
+
   public Command getStraight() {
-    pathGroup = PathPlanner.loadPathGroup("Straight", new PathConstraints(1.5, 0.75));
+    pathGroup = PathPlanner.loadPathGroup("Straight", new PathConstraints(0.8, 0.6));
     return new SequentialCommandGroup(
       autoBuilder.fullAuto(pathGroup)
     );
@@ -164,13 +176,14 @@ public class AutoBuilder {
   public Command getAutoBalanceCommand() {
     // This will load the file "FullAuto.path" and generate it with a max velocity
     // of 2.0 m/s and a max acceleration of 1.0 m/s^2 for every path in the group
-    pathGroup = PathPlanner.loadPathGroup("ChargingStationAuto", new PathConstraints(1.5, 0.75));
+    pathGroup = PathPlanner.loadPathGroup("ChargingStationAuto", new PathConstraints(0.8, 0.6));
 
     drivetrain.resetOdometry(pathGroup.get(0).getInitialHolonomicPose());
 
     double offsetRoll = drivetrain.getRoll().getDegrees();
     double offsetPitch = drivetrain.getPitch().getDegrees();
     return new SequentialCommandGroup(
+      new EnableIntake(claw).withTimeout(2),
       autoBuilder.fullAuto(pathGroup),
       new ChargingStationAuto(drivetrain, offsetPitch, offsetRoll)
     );

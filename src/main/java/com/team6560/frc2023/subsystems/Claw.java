@@ -8,6 +8,9 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.team6560.frc2023.Constants;
@@ -16,6 +19,10 @@ public class Claw extends SubsystemBase {
   CANSparkMax m_claw;
   Lights m_lights;
   String mode;
+  NetworkTable networkTable = NetworkTableInstance.getDefault().getTable("claw");
+  NetworkTableEntry current = networkTable.getEntry("claw current");
+  NetworkTableEntry velocity = networkTable.getEntry("claw velocity");
+
 
   /** Creates a new Claw. */
   public Claw(Lights l) {
@@ -30,7 +37,9 @@ public class Claw extends SubsystemBase {
   @Override
   public void periodic() {
     mode = m_lights.getMode();
-    SmartDashboard.putNumber("Voltage of Intake", m_claw.getBusVoltage() * m_claw.getAppliedOutput());
+    SmartDashboard.putNumber("Voltage of Intake", m_claw.getOutputCurrent());
+    current.setDouble(m_claw.getOutputCurrent());
+    velocity.setDouble(-m_claw.getEncoder().getVelocity());
     // This method will be called once per scheduler run
   }
 

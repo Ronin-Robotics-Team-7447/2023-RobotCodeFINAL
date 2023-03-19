@@ -384,25 +384,18 @@ public class DriveCommand extends CommandBase {
         if (controls.driveResetGlobalPose())
             drivetrain.resetOdometry(new Pose2d());
 
-        double poseX = drivetrain.getPose().getX();
-        Pose2d estPose = drivetrain.getLimelightEstimatedPosition();
-        Double poseXEstimated = estPose == null ? null : estPose.getX();
-        Pose2d odometryEstimatedPose = drivetrain.getOdometryPose2dNoApriltags();
-        Double odometryEstX = odometryEstimatedPose == null ? null : odometryEstimatedPose.getX();
-
-        if ((poseX > 0 && poseX < Constants.FieldConstants.length * 0.25) || (poseX > Constants.FieldConstants.length * 0.75 && poseX < Constants.FieldConstants.length)) {
-            drivetrain.setOverrideMaxVisionPoseCorrection(true);
-
-        } else if (poseXEstimated != null && ((poseXEstimated > 0 && poseXEstimated < Constants.FieldConstants.length * 0.25) || (poseXEstimated > Constants.FieldConstants.length * 0.75 && poseXEstimated < Constants.FieldConstants.length))) {
-            drivetrain.setOverrideMaxVisionPoseCorrection(true);
-        } else if (odometryEstX != null && ((odometryEstX > 0 && odometryEstX < Constants.FieldConstants.length * 0.25) || (odometryEstX > Constants.FieldConstants.length * 0.75 && odometryEstX < Constants.FieldConstants.length)))
-            drivetrain.setOverrideMaxVisionPoseCorrection(true);
-        else {
-            drivetrain.setOverrideMaxVisionPoseCorrection(controls.overrideMaxVisionPoseCorrection());
-        }
-
-        drivetrain.setOverrideMaxVisionPoseCorrection(true);
-
+            double poseX = drivetrain.getPose().getX();
+            Pose2d estPose = drivetrain.getLimelightEstimatedPosition();
+            Double poseXEstimated = estPose == null ? null : estPose.getX();
+            if ((poseX > 0 && poseX < Constants.FieldConstants.length * 0.25) || (poseX > Constants.FieldConstants.length * 0.75 && poseX < Constants.FieldConstants.length)) {
+                drivetrain.setOverrideMaxVisionPoseCorrection(true);
+    
+            } else if (poseXEstimated != null && ((poseXEstimated > 0 && poseXEstimated < Constants.FieldConstants.length * 0.25) || (poseXEstimated > Constants.FieldConstants.length * 0.75 && poseXEstimated < Constants.FieldConstants.length))) {
+                drivetrain.setOverrideMaxVisionPoseCorrection(true);
+            } else {
+                drivetrain.setOverrideMaxVisionPoseCorrection(controls.overrideMaxVisionPoseCorrection());
+            }
+            
             drivetrain.drive(
                     ChassisSpeeds.fromFieldRelativeSpeeds(
                             controls.driveX() * controls.driveBoostMultiplier(),

@@ -56,27 +56,27 @@ public final class Constants {
   public static final int FRONT_LEFT_MODULE_STEER_MOTOR = 2;
   public static final int FRONT_LEFT_MODULE_STEER_ENCODER = 11;
   // public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(291.09375);
-  public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(130.78125-15);
+  public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(113.203125);
 
   public static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 8;
   public static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 7;
   public static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 9;
   // public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(245.830078125);
-  public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(66.62109375);
+  public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(68.46679687500003);
 
 
   public static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 4;
   public static final int BACK_LEFT_MODULE_STEER_MOTOR = 3;
   public static final int BACK_LEFT_MODULE_STEER_ENCODER = 12;
   // public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(294.08203125);
-  public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(111.97265625000001);
+  public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(113.37890625);
 
   
 
   public static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 6;
   public static final int BACK_RIGHT_MODULE_STEER_MOTOR = 5;
   public static final int BACK_RIGHT_MODULE_STEER_ENCODER = 10;
-  public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(54.58007812499999);
+  public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(55.634765625);
 
   // The formula for calculating the theoretical maximum velocity is:
   // <Motor free speed RPM> / 60 * <Drive reduction> * <Wheel diameter meters> *
@@ -138,20 +138,49 @@ public final class Constants {
     public static final int ArmID = 17;
     public static final int gripYAxis = 1;
     // public static final double armSpeed = 0.6;
-    public static final double armSpeed = 0.;
-    public static final double upperLimit = 95.0;
-    public static final double lowerLimit = 181.0;
+    public static final double armSpeed = 0.2;
+    public static final double upperLimit = 62.0;
+    public static final double lowerLimit = 62.0;
     public static final double lowerLimitWhenTelescopeExtended = 120.0;
 
     public static final double highConeArmPosition = 195.0;
+  }
+
+  public static class WristConstants1 {
+    // For Teleop
+    public static final double WristSpeed = 0.3;
+
+    // ID ASSIGNMENT
+    public static final int WristID = 13;
+    public static final double defaultInitializePosition = 0.0;
+
+    // TUNE FEEDFORWARD AND PID VALUES
+    public static final double wristKP = 0.01; 
+    public static final double wristKI = 0.01;
+    public static final double wristKD = 0.01;
+
+    public static final double wristkS = 0.01;
+    public static final double wristkG = 0.01;
+    public static final double wristkV = 0.01;
+    public static final double wristkA = 0.01;
+
+    public static final double trapezoidMaxVelocity = 0.5;
+    public static final double trapezoidMaxAcceleration = 0.25;
+    public static final double trapezoidTimeFreq = 0.05; 
+
+    public static final double wristUpperLimit = 0.0;
+    public static final double wristLowerLimit = 0.0;
+
+    public static final float wristUpperLimitf = 0.0f;
+    public static final float wristLowerLimitf = 100.0f;
   }
 
   public static final class WristConstants {
     public static final int WristID = 13;
     public static final int ClawID = 15;
     public static final int WristEncoderID = 3;
-    public static final double wristSpeed = 0.4;
-    public static final double clawSpeed = 0.6;
+    public static final double wristSpeed = 0.6;
+    public static final double clawSpeed = 0.8;
     public static final double upperLimit = 104.0;
     public static final double lowerLimit = 272.0;
 

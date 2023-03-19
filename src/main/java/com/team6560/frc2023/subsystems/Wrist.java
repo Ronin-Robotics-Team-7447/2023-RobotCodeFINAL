@@ -39,9 +39,9 @@ public class Wrist extends SubsystemBase {
     m_wrist.setSmartCurrentLimit(5);
     m_wrist.setIdleMode(IdleMode.kBrake);
 
-    wristEncoder = new DutyCycleEncoder(Constants.WristConstants.WristEncoderID);
-    wristEncoder.setDutyCycleRange(1.0 / 1025.0, 1024.0 / 1025.0);
-
+    // wristEncoder = new DutyCycleEncoder(Constants.WristConstants.WristEncoderID);
+    // wristEncoder.setDutyCycleRange(1.0 / 1025.0, 1024.0 / 1025.0);
+    
     upperLimitNT.setDouble(Constants.WristConstants.upperLimit);
     lowerLimitNT.setDouble(Constants.WristConstants.lowerLimit);
     enableLimits.setBoolean(true);
@@ -49,7 +49,8 @@ public class Wrist extends SubsystemBase {
 
   @Override
   public void periodic() {
-    curAngle = wristEncoder.getAbsolutePosition() * 360;
+    // curAngle = wristEncoder.getAbsolutePosition() * 360;
+    curAngle = 0;
 
     if(enableLimits.getBoolean(false)) {
       passedLimits();

@@ -51,6 +51,7 @@ public class Arm extends SubsystemBase {
 
     m_armEncoder = new DutyCycleEncoder(Constants.ArmConstants.ArmEncoderID);
     m_armEncoder.setDutyCycleRange(1.0 / 1025.0, 1024.0 / 1025.0);
+    m_armEncoder.setPositionOffset(0.25);
 
     currentPositionNT.setDouble(0.0);
     upperLimitNT.setDouble(Constants.ArmConstants.upperLimit);

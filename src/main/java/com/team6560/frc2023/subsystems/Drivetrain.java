@@ -102,7 +102,7 @@ public class Drivetrain extends SubsystemBase {
         private final SwerveDriveOdometry odometry;
 
         public Drivetrain(Supplier<Pair<Pose2d, Double>> poseSupplier) {
-                MechanicalConfiguration mech = new MechanicalConfiguration(0.1016, 1/7.13, false, 1/13.71, false);
+                MechanicalConfiguration mech = new MechanicalConfiguration(0.1016, 1 / 7.13, false, 1 / 13.71, false);
                 this.poseSupplier = poseSupplier;
 
                 ShuffleboardTab tab = Shuffleboard.getTab("Drivetrain");
@@ -171,16 +171,16 @@ public class Drivetrain extends SubsystemBase {
                                                                                                     // X, Y, theta.
 
                 // for (CANSparkMax i : new CANSparkMax[] {climbExtensionMotorLeft,
-                //                 climbExtensionMotorRight }) {
-                //         i.getPIDController().setP(0.005);
-                //         i.getPIDController().setI(0.00005);
-                //         i.getPIDController().setD(0.0);
+                // climbExtensionMotorRight }) {
+                // i.getPIDController().setP(0.005);
+                // i.getPIDController().setI(0.00005);
+                // i.getPIDController().setD(0.0);
 
-                //         i.getPIDController().setIZone(0.0);
+                // i.getPIDController().setIZone(0.0);
                 // }
 
                 odometry = new SwerveDriveOdometry(m_kinematics, getRawGyroRotation(), getModulePositions());
-                
+
                 resetOdometry(new Pose2d());
 
                 SmartDashboard.putData("Field", field);
@@ -188,21 +188,7 @@ public class Drivetrain extends SubsystemBase {
         }
 
         public Rotation2d getGyroscopeRotationNoApriltags() {
-                return getOdometryPose2dNoApriltags().getRotation();
-        }
-
-        public Pose2d getOdometryPose2dNoApriltags() {
-                return odometry.getPoseMeters();
-        }
-
-        public double getAverageModuleDriveAngularTangentialSpeed() {
-                double sum = 0;
-                double sign = 0;
-                for (SwerveModule i : modules) {
-                        sign += i.getDriveVelocity();
-                        sum += Math.abs(i.getDriveVelocity());
-                }
-                return Math.copySign(sum / modules.length, sign);
+                return odometry.getPoseMeters().getRotation();
         }
 
         /**
@@ -246,7 +232,7 @@ public class Drivetrain extends SubsystemBase {
                 return poseEstimator.getEstimatedPosition().getRotation();
                 // return getRawGyroRotation();
         }
-        
+
         public Rotation2d getGyroscopePitch() {
                 // if (m_navx.isMagnetometerCalibrated()) {
                 // // We will only get valid fused headings if the magnetometer is calibrated
@@ -258,7 +244,6 @@ public class Drivetrain extends SubsystemBase {
                 return new Rotation2d(navX.getPitch() * -1 / 180 * Math.PI);
 
         }
-
 
         public SwerveModulePosition[] getModulePositions() {
                 // return reverseModulePositionArray(new SwerveModulePosition[] {
@@ -331,16 +316,17 @@ public class Drivetrain extends SubsystemBase {
          *                      rotational speed
          */
         public void drive(ChassisSpeeds chassisSpeeds) {
-                /*if (driveNoX(chassisSpeeds))
-                        setChassisState(DEFAULT_MODULE_STATES);*/
-
+                /*
+                 * if (driveNoX(chassisSpeeds))
+                 * setChassisState(DEFAULT_MODULE_STATES);
+                 */
                 if (driveNoX(chassisSpeeds)) {
-                                // SwerveModuleState[] speeds = m_kinematics.toSwerveModuleStates(currentManualSetChassisSpeeds);
-                                // SwerveDriveKinematics.desaturateWheelSpeeds(speeds, 0.0);
-                                // setChassisState(speeds);
-                                setChassisState(DEFAULT_MODULE_STATES);
+                        SwerveModuleState[] speeds = m_kinematics.toSwerveModuleStates(currentManualSetChassisSpeeds);
+                        System.out.println("b" + speeds[0].angle.getDegrees());
+                        SwerveDriveKinematics.desaturateWheelSpeeds(speeds, 0.0);
+                        setChassisState(speeds);
+                        // setChassisState(DEFAULT_MODULE_STATES);
 
-        
                 }
                 // setChassisState(DEFAULT_MODULE_STATES);
         }
@@ -351,8 +337,11 @@ public class Drivetrain extends SubsystemBase {
                 // SlewRateLimiter xLimiter = new SlewRateLimiter(0.5);
                 // SlewRateLimiter yLimiter = new SlewRateLimiter(0.5);
                 // SlewRateLimiter rotLimiter = new SlewRateLimiter(0.5);
-                // chassisSpeeds = new ChassisSpeeds(xLimiter.calculate(chassisSpeeds.vxMetersPerSecond), yLimiter.calculate(chassisSpeeds.vyMetersPerSecond), rotLimiter.calculate(chassisSpeeds.omegaRadiansPerSecond));
-
+                // chassisSpeeds = new
+                // ChassisSpeeds(xLimiter.calculate(chassisSpeeds.vxMetersPerSecond),
+                // yLimiter.calculate(chassisSpeeds.vyMetersPerSecond),
+                // rotLimiter.calculate(chassisSpeeds.omegaRadiansPerSecond));
+                System.out.println(autoLock);
                 if (this.autoLock)
                         return false;
                 SwerveModuleState[] states = Constants.m_kinematics.toSwerveModuleStates(chassisSpeeds);
@@ -364,7 +353,7 @@ public class Drivetrain extends SubsystemBase {
                 }
 
                 for (SwerveModuleState state : states) {
-                        if (state.speedMetersPerSecond > 0.05) {
+                        if (state.speedMetersPerSecond > 0.05) {               
                                 setChassisState(states);
                                 return false;
                         }
@@ -518,8 +507,9 @@ public class Drivetrain extends SubsystemBase {
                 if (!overrideMaxVisionPoseCorrection) {
                         camPose = new Pose2d(camPose.getTranslation(), getGyroscopeRotation());
                 }
-                // if (camPose.minus(getPose()).getTranslation().getNorm() > 1.5 && !overrideMaxVisionPoseCorrection)
-                //         return null;
+                // if (camPose.minus(getPose()).getTranslation().getNorm() > 1.5 &&
+                // !overrideMaxVisionPoseCorrection)
+                // return null;
                 return camPose;
 
         }
@@ -527,7 +517,9 @@ public class Drivetrain extends SubsystemBase {
         public void teleopFinesseChassisState(SwerveModuleState[] state) {
                 ChassisSpeeds speeds = Constants.m_kinematics.toChassisSpeeds(state);
 
-                setChassisState(Constants.m_kinematics.toSwerveModuleStates(new ChassisSpeeds(currentManualSetChassisSpeeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond)));
+                setChassisState(Constants.m_kinematics
+                                .toSwerveModuleStates(new ChassisSpeeds(currentManualSetChassisSpeeds.vxMetersPerSecond,
+                                                speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond)));
         }
 
         public void setAutoLock(boolean lock) {

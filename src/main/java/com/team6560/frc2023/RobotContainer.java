@@ -21,6 +21,7 @@ import com.team6560.frc2023.subsystems.Lights;
 import com.team6560.frc2023.subsystems.Limelight;
 import com.team6560.frc2023.subsystems.Telescope;
 import com.team6560.frc2023.subsystems.Wrist;
+import com.team6560.frc2023.subsystems.Wrist1;
 
 import edu.wpi.first.cscore.CameraServerJNI.TelemetryKind;
 import edu.wpi.first.wpilibj.AddressableLED;
@@ -61,7 +62,7 @@ public class RobotContainer {
         MoveClawManually outtake;
         MoveWristManually moveWristUp;
         MoveWristManually moveWristDown;
-        // MoveWristToAngle testPosition;
+        MoveWristToAngle testPosition;
 
         // MoveArmToAngle highConeArmPosition;
         // MoveTelescopeToPosition fullyExtendedPosition;
@@ -82,6 +83,8 @@ public class RobotContainer {
         //private final Intake intake;
 
         private final Arm arm;
+
+        // public final Wrist1 wrist1;
 
         // private final Telescope telescope;
 
@@ -110,10 +113,10 @@ public class RobotContainer {
                 // telescope = new Telescope();
                 arm = new Arm();
                 manualControls = new ManualControls(new XboxController(0), new XboxController(1));
-
+                // wrist1 = new Wrist1();
                 limelight = new Limelight(manualControls, () -> drivetrain == null ? null : drivetrain.getPose());
                 drivetrain = new Drivetrain(() -> limelight.getBotPose());
-
+                // testPosition = new MoveWristToAngle(wrist1, 60);
                 // testPosition = new MoveWristToAngle(m_wrist, Constants.WristConstants.testPos);
                 // highConeArmPosition = new MoveArmToAngle(arm, Constants.ArmConstants.highConeArmPosition);
                 // fullyExtendedPosition = new MoveTelescopeToPosition(telescope, Constants.TelescopeConstants.fullyExtendedPosition);
@@ -136,6 +139,7 @@ public class RobotContainer {
                 autoChooser.addOption("StraightwithIntake", autoBuilder.getPathStraightWithIntakeOut());
                 autoChooser.addOption("AutoBalance", autoBuilder.getAutoBalanceCommand());
                 autoChooser.addOption("Straight", autoBuilder.getStraight());
+                autoChooser.addOption("MidAround1", autoBuilder.getMidAround());
                 // for (String f : (new File(Filesystem.getDeployDirectory().getPath() + "/pathplanner")).list()) {
                 //         f = f.strip().replace(".path", "");
                 //         if (!f.equals(defaultAuto)) {
@@ -203,7 +207,7 @@ public class RobotContainer {
                 button8.onTrue(cubeLights);
                 button9.onTrue(defaultLights);
 
-                // button10.whileTrue(testPosition);
+                // button10.onTrue(testPosition);
                 // button11.whileTrue(highConeArmPosition);
                 // button12.whileTrue(fullyExtendedPosition);
               }

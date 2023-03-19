@@ -4,15 +4,15 @@
 
 package com.team6560.frc2023.commands;
 
-import com.team6560.frc2023.subsystems.Wrist;
+import com.team6560.frc2023.subsystems.Wrist1;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
 public class MoveWristToAngle extends CommandBase {
-  Wrist m_wrist;
+  Wrist1 m_wrist;
   double angle;
   /** Creates a new MoveWristToAngle. */
-  public MoveWristToAngle(Wrist w, double a) {
+  public MoveWristToAngle(Wrist1 w, double a) {
     m_wrist = w;
     angle = a;
     addRequirements(w);
@@ -26,13 +26,13 @@ public class MoveWristToAngle extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    // m_wrist.moveWristToAngle(angle);
+    m_wrist.setGoal(angle);
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    m_wrist.stopWrist();
+    m_wrist.stop();
   }
 
   // Returns true when the command should end.
