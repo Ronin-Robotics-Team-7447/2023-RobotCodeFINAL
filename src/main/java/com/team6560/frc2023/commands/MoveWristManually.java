@@ -4,20 +4,19 @@
 
 package com.team6560.frc2023.commands;
 
-import com.team6560.frc2023.subsystems.Wrist;
+import com.team6560.frc2023.subsystems.Wrist2;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
 public class MoveWristManually extends CommandBase {
-  Wrist m_wrist;
+  Wrist2 m_wrist;
   double wristSpeed;
   int buttonInput;
 
   /** Creates a new MoveWristManually. */
-  public MoveWristManually(Wrist w, double s, int bI) {
+  public MoveWristManually(Wrist2 w, double s) {
     m_wrist = w;
     wristSpeed = s;
-    buttonInput = bI;
     addRequirements(w);
     // Use addRequirements() here to declare subsystem dependencies.
   }
@@ -25,7 +24,6 @@ public class MoveWristManually extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    m_wrist.buttonPressed(buttonInput);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -37,7 +35,7 @@ public class MoveWristManually extends CommandBase {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    m_wrist.stopWrist();
+    m_wrist.stop();
   }
 
   // Returns true when the command should end.

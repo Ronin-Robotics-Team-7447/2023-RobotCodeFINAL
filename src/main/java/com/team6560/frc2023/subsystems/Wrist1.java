@@ -30,7 +30,7 @@ public class Wrist1 extends SubsystemBase{
   // FOR TESTING, DELETE AFTERWARDS
   double kP = 0.1;
   double kI = 1e-4;
-  double kD = 1;
+  double kD = 0.0;
   double kIz = 0.5;
   double kMaxOutput = 0.4;
   double kMinOutput = -0.4;
@@ -51,13 +51,10 @@ public class Wrist1 extends SubsystemBase{
     m_wristFeedforward = new ArmFeedforward(
       Constants.WristConstants1.wristkS, Constants.WristConstants1.wristkG,
       Constants.WristConstants1.wristkV, Constants.WristConstants1.wristkA);
-    
-    m_constraints = new TrapezoidProfile.Constraints(
-      Constants.WristConstants1.trapezoidMaxVelocity, Constants.WristConstants1.trapezoidMaxAcceleration);
 
-    m_wristPID.setSmartMotionMaxAccel(20.0, 0);
+    m_wristPID.setSmartMotionMaxAccel(200.0, 0);
     m_wristPID.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
-    m_wristPID.setSmartMotionMaxVelocity(40.0, 0);
+    m_wristPID.setSmartMotionMaxVelocity(400.0, 0);
 
     m_wrist.enableSoftLimit(SoftLimitDirection.kForward, true);
     m_wrist.enableSoftLimit(SoftLimitDirection.kReverse, true);
@@ -134,7 +131,7 @@ public class Wrist1 extends SubsystemBase{
     m_constraints = new TrapezoidProfile.Constraints(
         SmartDashboard.getNumber("Arm Trapezoid Max Velocity", Constants.WristConstants1.trapezoidMaxVelocity),
         SmartDashboard.getNumber("Arm Trapezoid Max Acceleration", Constants.WristConstants1.trapezoidMaxAcceleration));
-    rawGoal = SmartDashboard.getNumber("Set Rotations", rawGoal);
+    System.out.println(rawGoal);
     if (rawGoal != 0.0) {
       TrapezoidProfile.State goalPos = new TrapezoidProfile.State(rawGoal, 0);
       TrapezoidProfile.State curPos = new TrapezoidProfile.State(m_wristEncoder.getPosition(), 0);
@@ -147,7 +144,7 @@ public class Wrist1 extends SubsystemBase{
           m_wristFeedforward.calculate(setpoint.position, setpoint.velocity));
     }
 
-    // SmartDashboard.putNumber("Arm SetPoint: ", rawGoal);
+    SmartDashboard.putNumber("Arm SetPoint: ", rawGoal);
     SmartDashboard.putNumber("Arm Encoder Position", m_wristEncoder.getPosition());
   }
 

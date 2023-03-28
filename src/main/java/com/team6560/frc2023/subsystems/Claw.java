@@ -22,6 +22,7 @@ public class Claw extends SubsystemBase {
   NetworkTable networkTable = NetworkTableInstance.getDefault().getTable("claw");
   NetworkTableEntry current = networkTable.getEntry("claw current");
   NetworkTableEntry velocity = networkTable.getEntry("claw velocity");
+  boolean holdIntake = false;
 
 
   /** Creates a new Claw. */
@@ -41,6 +42,9 @@ public class Claw extends SubsystemBase {
     current.setDouble(m_claw.getOutputCurrent());
     velocity.setDouble(-m_claw.getEncoder().getVelocity());
     // This method will be called once per scheduler run
+    if( holdIntake ) {
+      
+    }
   }
 
   public void setClawSpeed(double speed) {

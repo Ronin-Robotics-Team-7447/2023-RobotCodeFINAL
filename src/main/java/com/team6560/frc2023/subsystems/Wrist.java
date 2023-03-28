@@ -5,6 +5,7 @@
 package com.team6560.frc2023.subsystems;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkMaxAbsoluteEncoder;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.team6560.frc2023.Constants;
@@ -18,7 +19,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Wrist extends SubsystemBase {
   CANSparkMax m_wrist;
-  DutyCycleEncoder wristEncoder;
+  SparkMaxAbsoluteEncoder m_wristEncoder;
 
   double curAngle = 0.0;
   int whatButtonPressed = 0;
@@ -44,13 +45,14 @@ public class Wrist extends SubsystemBase {
     
     upperLimitNT.setDouble(Constants.WristConstants.upperLimit);
     lowerLimitNT.setDouble(Constants.WristConstants.lowerLimit);
-    enableLimits.setBoolean(true);
+    enableLimits.setBoolean(false);
   }
 
   @Override
   public void periodic() {
     // curAngle = wristEncoder.getAbsolutePosition() * 360;
-    curAngle = 0;
+    m_wristEncoder = m_wrist.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);
+    curAngle = m_wristEncoder.getPosition() * 360;
 
     if(enableLimits.getBoolean(false)) {
       passedLimits();

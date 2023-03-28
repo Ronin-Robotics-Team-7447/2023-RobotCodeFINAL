@@ -55,28 +55,29 @@ public final class Constants {
   public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 1;
   public static final int FRONT_LEFT_MODULE_STEER_MOTOR = 2;
   public static final int FRONT_LEFT_MODULE_STEER_ENCODER = 11;
-  // public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(291.09375);
-  public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(113.203125);
+  // public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(110.91796875);
+  public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(111.181640625);
 
   public static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 8;
   public static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 7;
   public static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 9;
-  // public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(245.830078125);
-  public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(68.46679687500003);
+  // public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(68.02734375000003);
+  public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(67.58789062500003);
 
 
   public static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 4;
   public static final int BACK_LEFT_MODULE_STEER_MOTOR = 3;
   public static final int BACK_LEFT_MODULE_STEER_ENCODER = 12;
-  // public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(294.08203125);
-  public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(113.37890625);
+  // public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(111.00585937500001);
+  public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(111.181640625);
 
   
 
   public static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 6;
   public static final int BACK_RIGHT_MODULE_STEER_MOTOR = 5;
   public static final int BACK_RIGHT_MODULE_STEER_ENCODER = 10;
-  public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(55.634765625);
+  // public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(53.876953125);
+  public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(54.05273437500001);
 
   // The formula for calculating the theoretical maximum velocity is:
   // <Motor free speed RPM> / 60 * <Drive reduction> * <Wheel diameter meters> *
@@ -138,9 +139,9 @@ public final class Constants {
     public static final int ArmID = 17;
     public static final int gripYAxis = 1;
     // public static final double armSpeed = 0.6;
-    public static final double armSpeed = 0.2;
-    public static final double upperLimit = 62.0;
-    public static final double lowerLimit = 62.0;
+    public static final double armSpeed = 0.7;
+    public static final double upperLimit = 105.0;
+    public static final double lowerLimit = 178.0;
     public static final double lowerLimitWhenTelescopeExtended = 120.0;
 
     public static final double highConeArmPosition = 195.0;
@@ -148,7 +149,7 @@ public final class Constants {
 
   public static class WristConstants1 {
     // For Teleop
-    public static final double WristSpeed = 0.3;
+    public static final double WristSpeed = 0.2;
 
     // ID ASSIGNMENT
     public static final int WristID = 13;
@@ -168,11 +169,11 @@ public final class Constants {
     public static final double trapezoidMaxAcceleration = 0.25;
     public static final double trapezoidTimeFreq = 0.05; 
 
-    public static final double wristUpperLimit = 0.0;
-    public static final double wristLowerLimit = 0.0;
+    public static final double wristUpperLimit = 4.0;
+    public static final double wristLowerLimit = 50.0;
 
-    public static final float wristUpperLimitf = 0.0f;
-    public static final float wristLowerLimitf = 100.0f;
+    public static final float wristUpperLimitf = 4.0f;
+    public static final float wristLowerLimitf = 50.0f;
   }
 
   public static final class WristConstants {
@@ -180,7 +181,7 @@ public final class Constants {
     public static final int ClawID = 15;
     public static final int WristEncoderID = 3;
     public static final double wristSpeed = 0.6;
-    public static final double clawSpeed = 0.8;
+    public static final double clawSpeed = 1.0;
     public static final double upperLimit = 104.0;
     public static final double lowerLimit = 272.0;
 

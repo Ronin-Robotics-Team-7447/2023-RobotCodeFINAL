@@ -7,8 +7,10 @@ package com.team6560.frc2023.subsystems;
 import static com.team6560.frc2023.utility.NetworkTable.NtValueDisplay.ntDispTab;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkMaxAbsoluteEncoder;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.SparkMaxAbsoluteEncoder.Type;
 import com.team6560.frc2023.Constants;
 import com.team6560.frc2023.utility.NetworkTable.NtValueDisplay;
 
@@ -29,6 +31,7 @@ public class Arm extends SubsystemBase {
 
   double curAngle = 0.0;
   DutyCycleEncoder m_armEncoder;
+  // SparkMaxAbsoluteEncoder m_Encoder;
   double lowerLimitInCode;
 
   double telescopePosition = 0.0; 
@@ -52,6 +55,9 @@ public class Arm extends SubsystemBase {
     m_armEncoder = new DutyCycleEncoder(Constants.ArmConstants.ArmEncoderID);
     m_armEncoder.setDutyCycleRange(1.0 / 1025.0, 1024.0 / 1025.0);
     m_armEncoder.setPositionOffset(0.25);
+    // m_Encoder = m_arm.getAbsoluteEncoder(Type.kDutyCycle);
+    // m_Encoder.setPositionConversionFactor(360);
+    // m_Encoder.setVelocityConversionFactor(360);
 
     currentPositionNT.setDouble(0.0);
     upperLimitNT.setDouble(Constants.ArmConstants.upperLimit);
@@ -62,7 +68,7 @@ public class Arm extends SubsystemBase {
       .add("Current Position Angle", this::getAngle); */
   }
 
-  
+  private boolean setArmSpeed = true;
   @Override
   public void periodic() {
     // telescopePosition = m_telescope.getTelescopePosition();
@@ -71,25 +77,43 @@ public class Arm extends SubsystemBase {
 
     if( enableLimits.getBoolean(false) ) {
       resetLimits();
-      this.setArmSpeed(armJoystick.getRawAxis(Constants.ArmConstants.gripYAxis));
-    } else {
-      this.setArmSpeed(armJoystick.getRawAxis(Constants.ArmConstants.gripYAxis));
+      if( setArmSpeed ) {
+        this.setArmSpeed(armJoystick.getRawAxis(Constants.ArmConstants.gripYAxis));
+      }
+    }
+     else {
+      if( setArmSpeed ) {
+        this.setArmSpeed(armJoystick.getRawAxis(Constants.ArmConstants.gripYAxis));
+      }
       passedLimits();
     }
 
     lowerLimitInCode = lowerLimitNT.getDouble(Constants.ArmConstants.lowerLimit);
-
+    // lowerLimitInCode = Constants.ArmConstants.lowerLimit;
     // if(telescopePosition >= 500 ) {
     //   lowerLimitInCode = Constants.ArmConstants.lowerLimitWhenTelescopeExtended;
     // } else {
     //   lowerLimitInCode = lowerLimitNT.getDouble(Constants.ArmConstants.lowerLimit);
     // }
   }
+  
+  public double getAbsoluteEncoderPosition() {
+    return m_armEncoder.getAbsolutePosition() * 360;
+  }
+
+  public void setArmSpeedNoLimits(double armSpeed) {
+    // enableLimits.setBoolean(true);
+    m_arm.set(armSpeed);
+  }
+
+  public void setArmSpeedLimit(boolean a) {
+    setArmSpeed = a;
+  }
 
   public void setArmSpeed(double armSpeed) {
-    if( armSpeed > 0.3 ) {
+    if( armSpeed > 0.9 ) {
       if(wedonotwantogodownanymore) {
-        if( armJoystick.getRawAxis(Constants.ArmConstants.gripYAxis) < 0.0 ) {
+        if( armJoystick.getRawAxis(Constants.ArmConstants.gripYAxis) < 0.9 ) {
           m_arm.set(returnSpeed());
         } else {
           m_arm.set(0);
@@ -97,9 +121,9 @@ public class Arm extends SubsystemBase {
       } else {
         m_arm.set(-returnSpeed());
       } 
-    } else if( armSpeed < -0.3 ) {
+    } else if( armSpeed < -0.9 ) {
       if (wedonotwantogoupanymore) {
-        if( armJoystick.getRawAxis(Constants.ArmConstants.gripYAxis) > 0.0 ) {
+        if( armJoystick.getRawAxis(Constants.ArmConstants.gripYAxis) > 0.9 ) {
           m_arm.set(-returnSpeed());
         } else {
           m_arm.set(0);
@@ -112,12 +136,12 @@ public class Arm extends SubsystemBase {
     }
   }
   public double returnSpeed() {
-    if( curAngle > 152 ) {
-      return Constants.ArmConstants.armSpeed / 2.0;
-    } else if( curAngle > 166 ) {
-      return Constants.ArmConstants.armSpeed / 4.0;
+    if( curAngle > 167 ) {
+      return Constants.ArmConstants.armSpeed/4;
+    } else if(curAngle > 120 ) {
+      return Constants.ArmConstants.armSpeed/2;
     } else {
-      return Constants.ArmConstants.armSpeed;
+      return Constants.ArmConstants.armSpeed/4;
     }
   }
 

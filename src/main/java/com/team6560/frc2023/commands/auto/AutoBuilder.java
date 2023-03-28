@@ -18,9 +18,12 @@ import com.pathplanner.lib.PathPlannerTrajectory.StopEvent.WaitBehavior;
 import com.pathplanner.lib.auto.PIDConstants;
 import com.pathplanner.lib.auto.SwerveAutoBuilder;
 import com.team6560.frc2023.Constants;
+import com.team6560.frc2023.commands.MoveArmToAngle;
+import com.team6560.frc2023.commands.MoveWristToAngle;
 import com.team6560.frc2023.subsystems.Arm;
 import com.team6560.frc2023.subsystems.Claw;
 import com.team6560.frc2023.subsystems.Drivetrain;
+import com.team6560.frc2023.subsystems.Wrist2;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -68,15 +71,19 @@ public class AutoBuilder {
   private Drivetrain drivetrain;
   private SwerveAutoBuilder teleopAutoBuilder;
   private Claw claw;
+  private Arm arm;
+  private Wrist2 wrist2;
   /**
    * 
    * Constructor for AutoBuilder class. Initializes eventMap, autoBuilder, and drivetrain.
    * 
    * @param drivetrain An instance of Drivetrain that represents the drive ubsystem.
    */
-  public AutoBuilder(Drivetrain drivetrain, Claw claw) {
+  public AutoBuilder(Drivetrain drivetrain, Claw claw, Arm arm, Wrist2 wrist) {
     this.drivetrain = drivetrain;
     this.claw = claw;
+    this.arm = arm;
+    this.wrist2 = wrist2;
 
     eventMap = new HashMap<>();
     eventMap.put("printCommand", new PrintCommand("test Print command"));
@@ -86,7 +93,7 @@ public class AutoBuilder {
         (pose) -> drivetrain.resetOdometry(pose), // Pose2d consumer, used to reset odometry at the beginning of auto
         Constants.m_kinematics, // SwerveDriveKinematics
         new PIDConstants(5.0, 0.0, 0.95), // PID constants to correct for translation error (used to create the X and Y ID controllers)
-        new PIDConstants(0.5, 0.0, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
+        new PIDConstants(0, 0.0, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
         (state) -> drivetrain.autoSetChassisState(state), // Module states consumer used to output to the drive subsystem
         eventMap,
         drivetrain // The drive subsystem. Used to properly set the requirements of path following commands
@@ -154,6 +161,16 @@ public class AutoBuilder {
     );
   }
 
+  public Command OuttakeMidMobilityLong() {
+    pathGroup = PathPlanner.loadPathGroup("OuttakeMidMobilityLong", new PathConstraints(0.8, 0.6));
+    return new SequentialCommandGroup(
+      new MoveWristToAngle(wrist2, 4, 0.3), new MoveArmToAngle(arm, 104, 0.45), new MoveWristToAngle(wrist2, 92, 0.3), 
+      new EnableIntake(claw).withTimeout(0.5),
+      new MoveWristToAngle(wrist2, 4, 0.3), new MoveArmToAngle(arm, 178, 0.45),
+      autoBuilder.fullAuto(pathGroup)
+    );
+  }
+
   public Command getMidAround() {
     pathGroup = PathPlanner.loadPathGroup("MidAround1", new PathConstraints(1.5, 0.75));
     drivetrain.resetOdometry(pathGroup.get(0).getInitialHolonomicPose());
@@ -183,7 +200,7 @@ public class AutoBuilder {
     double offsetRoll = drivetrain.getRoll().getDegrees();
     double offsetPitch = drivetrain.getPitch().getDegrees();
     return new SequentialCommandGroup(
-      new EnableIntake(claw).withTimeout(2),
+      new EnableIntake(claw).withTimeout(0.5),
       autoBuilder.fullAuto(pathGroup),
       new ChargingStationAuto(drivetrain, offsetPitch, offsetRoll)
     );

@@ -15,7 +15,7 @@ public class ChargingStationAuto extends CommandBase {
   private final Drivetrain drivetrain;
   private double pitchOffsetDegrees;
   private double rollOffsetDegrees;
-  private static final double k = 0.04;
+  private static final double k = 0.03;
 
   /** Creates a new ChargingStationAuto. */
   public ChargingStationAuto(Drivetrain drivetrain, double pitchOffsetDegrees, double rollOffsetDegrees) {
@@ -41,8 +41,8 @@ public class ChargingStationAuto extends CommandBase {
   public void execute() {
     double speed_x = 0.0;
     double speed_y = 0.0;
-    if (Math.hypot(drivetrain.getPitch().getDegrees() - pitchOffsetDegrees, drivetrain.getRoll().getDegrees() - rollOffsetDegrees) > 3) {
-      System.out.println(Math.hypot(drivetrain.getPitch().getDegrees() - pitchOffsetDegrees, drivetrain.getRoll().getDegrees() - rollOffsetDegrees) > 3);
+    if (Math.hypot(drivetrain.getPitch().getDegrees() - pitchOffsetDegrees, drivetrain.getRoll().getDegrees() - rollOffsetDegrees) > 3.5) {
+      System.out.println(Math.hypot(drivetrain.getPitch().getDegrees() - pitchOffsetDegrees, drivetrain.getRoll().getDegrees() - rollOffsetDegrees) > 3.5);
       speed_x = -(drivetrain.getRoll().getDegrees() - rollOffsetDegrees)* k;
       speed_y = -(drivetrain.getPitch().getDegrees() - pitchOffsetDegrees)* k;
     }

@@ -57,13 +57,13 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
       this.controlStation = controlStation;
 
     this.speed = new PovNumberStepper(
-        new NumberStepper(Constants.MAX_VELOCITY_METERS_PER_SECOND * 0.2, 0.0,
+        new NumberStepper(Constants.MAX_VELOCITY_METERS_PER_SECOND * 0.2 + (Constants.MAX_VELOCITY_METERS_PER_SECOND * 0.15), 0.0,
             Constants.MAX_VELOCITY_METERS_PER_SECOND * 0.6, Constants.MAX_VELOCITY_METERS_PER_SECOND * 0.05),
         xbox,
         PovNumberStepper.PovDirection.VERTICAL);
 
     this.turnSpeed = new PovNumberStepper(
-        new NumberStepper(Constants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * 0.1, 0.0,
+        new NumberStepper(Constants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * 0.1 + (Constants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * 0.0025 * 5), 0.0,
             Constants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * 0.15,
             Constants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * 0.0025),
         xbox,
@@ -116,9 +116,9 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
     value = Math.copySign(value * value, value);
 
     // Slew Rate Limiter
-    // SlewRateLimiter limiter = new SlewRateLimiter(3);
+    // SlewRateLimiter limiter = new SlewRateLimiter(0.5);
     // value = limiter.calculate(value);
-
+    
     return value;
   }
 
@@ -181,7 +181,11 @@ public class ManualControls implements DriveCommand.Controls, Limelight.Controls
 
   @Override
   public double driveBoostMultiplier() {
-    return xbox.getLeftBumper() ? 0.5 : xbox.getRightBumper() ? 1.5 : 1.0;
+    if( xbox.getRightBumper() ) {
+      return 0.5;
+    } else if( xbox.getRightTriggerAxis() > 0.3 ) {
+      return 1.5;
+    } else return 1;
   }
 
   @Override

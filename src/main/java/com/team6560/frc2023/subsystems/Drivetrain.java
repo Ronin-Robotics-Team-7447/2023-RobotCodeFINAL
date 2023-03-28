@@ -101,6 +101,10 @@ public class Drivetrain extends SubsystemBase {
 
         private final SwerveDriveOdometry odometry;
 
+        private SlewRateLimiter xLimiter = new SlewRateLimiter(6);
+        private SlewRateLimiter yLimiter = new SlewRateLimiter(6);
+        private SlewRateLimiter rotLimiter = new SlewRateLimiter(12);
+
         public Drivetrain(Supplier<Pair<Pose2d, Double>> poseSupplier) {
                 MechanicalConfiguration mech = new MechanicalConfiguration(0.1016, 1 / 7.13, false, 1 / 13.71, false);
                 this.poseSupplier = poseSupplier;
@@ -144,7 +148,6 @@ public class Drivetrain extends SubsystemBase {
                                 .withSteerEncoderPort(BACK_LEFT_MODULE_STEER_ENCODER)
                                 .withSteerOffset(BACK_LEFT_MODULE_STEER_OFFSET)
                                 .build();
-
                 m_backRightModule = new MkSwerveModuleBuilder(MkModuleConfiguration.getDefaultSteerNEO())
                                 .withLayout(tab.getLayout("Back Right Module", BuiltInLayouts.kList)
                                                 .withSize(2, 4)
@@ -322,26 +325,26 @@ public class Drivetrain extends SubsystemBase {
                  */
                 if (driveNoX(chassisSpeeds)) {
                         SwerveModuleState[] speeds = m_kinematics.toSwerveModuleStates(currentManualSetChassisSpeeds);
-                        System.out.println("b" + speeds[0].angle.getDegrees());
                         SwerveDriveKinematics.desaturateWheelSpeeds(speeds, 0.0);
                         setChassisState(speeds);
                         // setChassisState(DEFAULT_MODULE_STATES);
-
                 }
                 // setChassisState(DEFAULT_MODULE_STATES);
         }
 
         public boolean driveNoX(ChassisSpeeds chassisSpeeds) {
-                this.currentManualSetChassisSpeeds = chassisSpeeds;
-
-                // SlewRateLimiter xLimiter = new SlewRateLimiter(0.5);
-                // SlewRateLimiter yLimiter = new SlewRateLimiter(0.5);
-                // SlewRateLimiter rotLimiter = new SlewRateLimiter(0.5);
+                // SlewRateLimiter xLimiter = new SlewRateLimiter(3);
+                // SlewRateLimiter yLimiter = new SlewRateLimiter(3);
+                // SlewRateLimiter rotLimiter = new SlewRateLimiter(3);
                 // chassisSpeeds = new
                 // ChassisSpeeds(xLimiter.calculate(chassisSpeeds.vxMetersPerSecond),
                 // yLimiter.calculate(chassisSpeeds.vyMetersPerSecond),
                 // rotLimiter.calculate(chassisSpeeds.omegaRadiansPerSecond));
-                System.out.println(autoLock);
+                
+                this.currentManualSetChassisSpeeds = chassisSpeeds;
+                chassisSpeeds = new ChassisSpeeds(xLimiter.calculate(chassisSpeeds.vxMetersPerSecond),
+                                yLimiter.calculate(chassisSpeeds.vyMetersPerSecond), rotLimiter.calculate(chassisSpeeds.omegaRadiansPerSecond));
+                
                 if (this.autoLock)
                         return false;
                 SwerveModuleState[] states = Constants.m_kinematics.toSwerveModuleStates(chassisSpeeds);
@@ -352,6 +355,7 @@ public class Drivetrain extends SubsystemBase {
                         return false;
                 }
 
+        
                 for (SwerveModuleState state : states) {
                         if (state.speedMetersPerSecond > 0.05) {               
                                 setChassisState(states);
