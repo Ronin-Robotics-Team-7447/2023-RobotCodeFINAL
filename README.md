@@ -6,4 +6,4 @@
 - [@Junyi Zhong](https://github.com/Johnny0902)
 - [@Aditya](https://github.com/Monykus7)
 
-Special thanks to team 6560 for lending there workshop/resources/mentors for our robot. 
+Special thanks to team 6560 for lending there workshop/resources/mentors this season.
