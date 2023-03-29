@@ -1,19 +1,9 @@
-# Charging Champions Robot Code 2023
-[![Build Robot Code](https://github.com/frc6560/Robot-Code-2023/actions/workflows/main.yml/badge.svg)](https://github.com/frc6560/Robot-Code-2023/actions/workflows/main.yml)
-
-This code is the Charging Champions robot code for 2023.
-
+# Team 7447 Robotics Code
 
 ## Authors
 
-- [@Mark Zakharyan](https://www.github.com/markzakharyan)
-- [@Krish Wu ʕ⌐■ᴥ■ʔ](https://www.github.com/krishwu)
-- [@Sophia Dai](https://github.com/Sophiadai8)
-- [@Nguyen Do](https://github.com/EdgerDedger)
+- [@Jason Chen](https://github.com/JaxonTekk)
+- [@Junyi Zhong](https://github.com/Johnny0902)
+- [@Aditya](https://github.com/Monykus7)
 
-
-
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)
+Special thanks to team 6560 for lending there workshop/resources/mentors for our robot. 
