@@ -1,3 +1,4 @@
+![Team7447People](https://media.discordapp.net/attachments/944474807536320532/1090091154323800104/IMG_2352.jpg?width=1014&height=676)
 # Team 7447 Robotics Code
 
 ## Authors
